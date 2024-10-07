@@ -1,6 +1,6 @@
-# congressional_app
+# Eyes
 
-A new Flutter project.
+An app that collects user sightings of things happening in their community.
 
 ## Getting Started
 
