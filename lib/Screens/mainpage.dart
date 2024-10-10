@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'posts.dart';
+import 'home.dart';
+import 'profile.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -49,12 +51,9 @@ class _MainPageState extends State<MainPage> {
   }
 
   static const List<Widget> _pages = <Widget>[
+    Home(),
     Posts(),
-    Posts(),
-    Icon(
-      Icons.chat,
-      size: 150,
-    ),
+    Profile(),
   ];
 }
 

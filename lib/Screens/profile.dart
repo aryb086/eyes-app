@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'mainpage.dart';
 
-class Posts extends StatelessWidget {
-  const Posts({super.key});
+class Profile extends StatelessWidget {
+  const Profile({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +22,9 @@ class Posts extends StatelessWidget {
       leading: IconButton(
         onPressed: () {
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MainPage()),
-          );
+          context,
+          MaterialPageRoute(builder: (context) => const MainPage()),
+        );
         },
         icon: const Icon(Icons.close),
       ),
@@ -38,14 +38,7 @@ class Posts extends StatelessWidget {
     );
   }
 
-  _body(context) {
-    return IconButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MainPage()),
-          );
-        },
-        icon: Image.asset('assets/eyes_logo.png', width: 24, height: 24,));
+  _body(context){
+    return const Text('hello');
   }
 }
