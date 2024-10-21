@@ -57,11 +57,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
   _header(context) {
     return AppBar(
-      leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          }),
       title: const Text('Sign Up',
           style: TextStyle(
               color: Colors.black, fontSize: 30, fontWeight: FontWeight.bold)),
@@ -187,8 +182,9 @@ class _SignUpPageState extends State<SignUpPage> {
           email = emailInput.text;
           user = userInput.text;
           password = passwordInput.text;
-          var userInfo = UserInfo(name, email, user, password);
-          globals.users.add(userInfo);
+          var userInfo = UserInfo(name, email, user, password, false, false);
+          globals.users[user] = userInfo;
+          globals.username = user;
           for (int i = 0; i < globals.users.length; i++) {}
         });
         Navigator.push(

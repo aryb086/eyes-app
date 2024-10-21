@@ -46,11 +46,6 @@ class _LoginPageState extends State<LoginPage> {
 
   _header(context) {
     return AppBar(
-      leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          }),
       title: const Text('Welcome Back',
           style: TextStyle(
               color: Colors.black, fontSize: 30, fontWeight: FontWeight.bold)),
@@ -128,18 +123,14 @@ class _LoginPageState extends State<LoginPage> {
 
   _loginLogic(context) {
     var loggedIn = false;
-    for (var i = 0; i < globals.users.length; i++) {
-      var current = globals.users[i];
-      if (current.getUser() == userInput.text) {
-        if (current.getPassword() == passwordInput.text) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MainPage()),
-          );
-        }
-      }
-    }
-    if (!loggedIn) {
+    if (globals.users[userInput.text]!.password == passwordInput.text) {
+      loggedIn = true;
+      globals.username = userInput.text;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const MainPage()),
+      );
+    } else if (!loggedIn) {
       userInput.clear();
       passwordInput.clear();
     }
