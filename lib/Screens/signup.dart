@@ -39,8 +39,7 @@ class _SignUpPageState extends State<SignUpPage> {
       home: Scaffold(
         body: Container(
           margin: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: ListView(
             children: [
               _header(context),
               const SizedBox(
@@ -76,6 +75,10 @@ class _SignUpPageState extends State<SignUpPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: nameInput,
           decoration: InputDecoration(
               hintText: "Name",
@@ -88,6 +91,10 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: emailInput,
           decoration: InputDecoration(
               hintText: "Email",
@@ -100,6 +107,10 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: userInput,
           decoration: InputDecoration(
               hintText: "Username",
@@ -112,6 +123,10 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: passwordInput,
           decoration: InputDecoration(
             hintText: "Password",
@@ -128,6 +143,10 @@ class _SignUpPageState extends State<SignUpPage> {
           height: 10,
         ),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: confirmPasswordInput,
           decoration: InputDecoration(
               hintText: "Confirm Password",
