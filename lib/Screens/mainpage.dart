@@ -36,7 +36,6 @@ class _MainPageState extends State<MainPage> {
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
         BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Post'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account')
       ],
       currentIndex: _selectedIndex, //New
       onTap: _onItemTapped,
@@ -53,8 +52,7 @@ class _MainPageState extends State<MainPage> {
 
   static final List<Widget> _pages = <Widget>[
     Home(),
-    Posts(),
-    const Profile(),
+    const Posts(),
   ];
 }
 

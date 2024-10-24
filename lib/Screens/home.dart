@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:congressional_app/Screens/join_city.dart';
 import 'package:congressional_app/Screens/join_nh.dart';
+import 'package:congressional_app/classes/post_database.dart';
+import 'package:congressional_app/widgets/post_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatelessWidget {
   Home({super.key});
+
+  final PostDatabase database = PostDatabase();
 
   final User? currentUser = FirebaseAuth.instance.currentUser;
 
@@ -109,7 +113,7 @@ _body(context) {
           }
 
           // Optional: If both are true, or any other fallback logic
-          return const Text('All set up');
+          return _feed(context);
         } else {
           return const Text("User data is null");
         }
@@ -205,4 +209,40 @@ Widget buildContainer(String label1, VoidCallback onPressed1, [String? label2, V
   );
 }
 
+_feed(context){
+  return StreamBuilder(
+    stream: database.getPosts(),
+    builder: (context, snapshot){
+      if(snapshot.connectionState == ConnectionState.waiting){
+        return const Center(
+          child: CircularProgressIndicator()
+        );
+      }
+      final posts = snapshot.data!.docs;
+
+      if (snapshot.data == null || posts.isEmpty){
+        return const Center(
+          child: Padding(padding: EdgeInsets.all(24), child: Text('Nothing yet. Post something!'),),
+        );
+      }
+
+      return Expanded(
+        child: ListView.builder(
+          itemCount: posts.length,
+          itemBuilder: (context, index){
+            final post = posts[index];
+
+            String description = post['description'];
+            String? email = currentUser!.email;
+
+            return ListTile(
+              title: Text(description, style: TextStyle(color: Colors.black, fontSize: 15,)),
+              subtitle: Text("aryb086")
+            );
+          },
+        )
+      );
+    },
+  );
+}
 }

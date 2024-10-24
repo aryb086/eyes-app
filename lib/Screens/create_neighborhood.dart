@@ -74,6 +74,10 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: neighborhoodInput,
           decoration: InputDecoration(
             hintText: "Neighboorhood Name",
@@ -86,6 +90,10 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: cityInput,
           decoration: InputDecoration(
             hintText: "City Name",
@@ -98,6 +106,10 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: stateInput,
           decoration: InputDecoration(
             hintText: "State",
@@ -111,6 +123,10 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: countryInput,
           decoration: InputDecoration(
             hintText: "Country",
@@ -124,6 +140,10 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: zipInput,
           decoration: InputDecoration(
             hintText: "Zip",
