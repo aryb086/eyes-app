@@ -1,19 +1,20 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Posts extends StatefulWidget {
-  Posts({super.key});
+  const Posts({super.key});
 
   @override
   _PostsState createState() => _PostsState();
 }
 
 class _PostsState extends State<Posts> {
+  bool button1IsPressed = false;
+  bool button2IsPressed = true;
   final storageRef = FirebaseStorage.instance.ref();
   final captionInput = TextEditingController();
   late String postingWhere;
@@ -21,59 +22,25 @@ class _PostsState extends State<Posts> {
 
   final User? currentUser = FirebaseAuth.instance.currentUser;
 
-  // Request permissions for storage and camera
-  Future<bool> _requestPermission(Permission permission) async {
-    var status = await permission.status;
-    if (!status.isGranted) {
-      status = await permission.request();
-    }
-    return status.isGranted;
+  Future getImageCamera() async {
+    final image = await ImagePicker().pickImage(source: ImageSource.camera);
+    if(image == null) return;
+
+    final imageTemp = File(image.path);
+    setState(() {
+      _selectedImage = imageTemp;
+    });
   }
+  Future getImageGallery() async {
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if(image == null) return;
 
-  // Function to pick an image from the gallery
-  Future<void> _pickImageFromGallery() async {
-    if (await _requestPermission(Permission.storage)) {
-      try {
-        final picker = ImagePicker();
-        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-        if (pickedFile != null) {
-          setState(() {
-            _selectedImage = File(pickedFile.path);
-          });
-        } else {
-          print("No image selected");
-        }
-      } catch (e) {
-        print("Error picking image from gallery: $e");
-      }
-    } else {
-      print("Storage permission denied");
-    }
+    final imageTemp = File(image.path);
+    setState(() {
+      _selectedImage = imageTemp;
+    });
   }
-
-  // Function to pick an image from the camera
-  Future<void> _pickImageFromCamera() async {
-    if (await _requestPermission(Permission.camera)) {
-      try {
-        final picker = ImagePicker();
-        final pickedFile = await picker.pickImage(source: ImageSource.camera);
-
-        if (pickedFile != null) {
-          setState(() {
-            _selectedImage = File(pickedFile.path);
-            print(_selectedImage?.path);
-          });
-        } else {
-          print("No image captured");
-        }
-      } catch (e) {
-        print("Error picking image from camera: $e");
-      }
-    } else {
-      print("Camera permission denied");
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -120,12 +87,17 @@ class _PostsState extends State<Posts> {
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    postingWhere = "Neighborhood";
+                    if (button2IsPressed) {
+                      print(button1IsPressed);
+                      button1IsPressed = !button1IsPressed;
+                      postingWhere = "Neighborhood";
+                    }
                   });
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
-                  backgroundColor: Colors.black,
+                  backgroundColor:
+                      button1IsPressed ? Colors.grey : Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -141,12 +113,17 @@ class _PostsState extends State<Posts> {
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    postingWhere = "City";
+                    if (button1IsPressed) {
+                      print(button2IsPressed);
+                      button2IsPressed = !button2IsPressed;
+                      postingWhere = "City";
+                    }
                   });
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
-                  backgroundColor: Colors.black,
+                  backgroundColor:
+                      button2IsPressed ? Colors.grey : Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -173,8 +150,8 @@ class _PostsState extends State<Posts> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  _pickImageFromGallery();
+                onPressed: () async {
+                  getImageGallery();
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
@@ -193,7 +170,7 @@ class _PostsState extends State<Posts> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  _pickImageFromCamera();
+                  getImageCamera();
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
@@ -228,6 +205,10 @@ class _PostsState extends State<Posts> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: captionInput,
           maxLines: 5,
           decoration: InputDecoration(
@@ -243,7 +224,8 @@ class _PostsState extends State<Posts> {
         const SizedBox(height: 40),
         ElevatedButton(
           onPressed: () {
-            createPostDoc(postingWhere, _selectedImage!.path, captionInput.text);
+            createPostDoc(
+                postingWhere, _selectedImage!.path, captionInput.text);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black,
@@ -266,7 +248,7 @@ class _PostsState extends State<Posts> {
 
   Future<void> createPostDoc(
     String postingWhere,
-    String imagePath, 
+    String imagePath,
     String description,
   ) async {
     await FirebaseFirestore.instance
@@ -275,7 +257,7 @@ class _PostsState extends State<Posts> {
         .set({
       'user': currentUser,
       'post location': postingWhere,
-      'image path':imagePath,
+      'image path': imagePath,
       'description': description,
     });
   }

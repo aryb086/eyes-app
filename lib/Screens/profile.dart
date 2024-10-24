@@ -19,21 +19,10 @@ class Profile extends StatelessWidget {
 
   _header(context) {
     return AppBar(
-      leading: IconButton(
-        onPressed: () {
-          Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
-        );
-        },
-        icon: const Icon(Icons.close),
-      ),
-      title: const Text("Post",
+      title: const Text("S E T T I N G S",
           style: TextStyle(
               color: Colors.black,
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              fontStyle: FontStyle.italic)),
+              fontSize: 30,)),
       centerTitle: true,
     );
   }
