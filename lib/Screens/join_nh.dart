@@ -80,6 +80,10 @@ class _JoinNeighborhoodState extends State<JoinNeighborhood> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: neighborhoodInput,
           decoration: InputDecoration(
             hintText: "Neighborhood Name",
@@ -92,6 +96,10 @@ class _JoinNeighborhoodState extends State<JoinNeighborhood> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: cityInput,
           decoration: InputDecoration(
             hintText: "City Name",

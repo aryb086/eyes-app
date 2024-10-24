@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:congressional_app/Screens/mainpage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,7 @@ class Posts extends StatefulWidget {
   const Posts({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _PostsState createState() => _PostsState();
 }
 
@@ -17,7 +20,7 @@ class _PostsState extends State<Posts> {
   bool button2IsPressed = true;
   final storageRef = FirebaseStorage.instance.ref();
   final captionInput = TextEditingController();
-  late String postingWhere;
+  String postingWhere = 'Neighborhood';
   // ignore: prefer_typing_uninitialized_variables
   var imageUrl;
   File? _selectedImage;
@@ -26,23 +29,23 @@ class _PostsState extends State<Posts> {
 
   Future getImageCamera() async {
     final image = await ImagePicker().pickImage(source: ImageSource.camera);
-    if(image == null) return;
+    if (image == null) return;
 
     final imageTemp = File(image.path);
     setState(() {
       _selectedImage = imageTemp;
     });
   }
+
   Future getImageGallery() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if(image == null) return;
+    if (image == null) return;
 
     final imageTemp = File(image.path);
     setState(() {
       _selectedImage = imageTemp;
     });
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -190,13 +193,6 @@ class _PostsState extends State<Posts> {
           ],
         ),
         const SizedBox(height: 20),
-        if (_selectedImage != null)
-          Image.file(
-            _selectedImage!,
-            height: 200,
-            width: 200,
-            fit: BoxFit.cover,
-          ),
         const SizedBox(height: 20),
         const Text(
           'DESCRIPTION',
@@ -208,9 +204,9 @@ class _PostsState extends State<Posts> {
         const SizedBox(height: 10),
         TextField(
           onTapOutside: (event) {
-                  print('onTapOutside');
-                    FocusManager.instance.primaryFocus?.unfocus();
-                },
+            print('onTapOutside');
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
           controller: captionInput,
           maxLines: 5,
           decoration: InputDecoration(
@@ -226,17 +222,24 @@ class _PostsState extends State<Posts> {
         const SizedBox(height: 40),
         ElevatedButton(
           onPressed: () async {
-            
-            if(_selectedImage != null){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MainPage()),
+            );
+            if (_selectedImage != null) {
               String email = currentUser!.email ?? '';
-              final imageRef = storageRef.child('postImages').child(email + '.jpg');
+              final imageRef = storageRef.child('postImages').child('${_randomString(5)}.jpg');
               await imageRef.putFile(_selectedImage!);
-              var imageUrl = await imageRef.getDownloadURL();
-            }else{
+              try {
+                var imageUrl = await imageRef.getDownloadURL();
+                createPostDoc(postingWhere, imageUrl, captionInput.text);
+                print('post doc created');
+              } on Exception {
+                print('error');
+              }
+            } else {
               print("image not found");
             }
-            createPostDoc(
-                postingWhere, imageUrl, captionInput.text);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black,
@@ -262,14 +265,21 @@ class _PostsState extends State<Posts> {
     String imagePath,
     String description,
   ) async {
-    await FirebaseFirestore.instance
-        .collection('PostData')
-        .doc(currentUser!.email)
-        .set({
-      'user': currentUser,
+    await FirebaseFirestore.instance.collection('PostData').doc().set({
+      'user': currentUser!.email,
       'post location': postingWhere,
       'image path': imagePath,
       'description': description,
+      'timestamp': Timestamp.now(),
     });
+  }
+
+  String _randomString(length) {
+    const _chars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random rnd = Random();
+
+    return String.fromCharCodes(Iterable.generate(
+        length, (_) => _chars.codeUnitAt(rnd.nextInt(_chars.length))));
   }
 }

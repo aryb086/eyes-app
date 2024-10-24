@@ -73,6 +73,10 @@ class _CreateCityState extends State<CreateCity> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: cityInput,
           decoration: InputDecoration(
             hintText: "City Name",
@@ -85,6 +89,10 @@ class _CreateCityState extends State<CreateCity> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: stateInput,
           decoration: InputDecoration(
             hintText: "State",
@@ -98,6 +106,10 @@ class _CreateCityState extends State<CreateCity> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: countryInput,
           decoration: InputDecoration(
             hintText: "Country",
@@ -111,6 +123,10 @@ class _CreateCityState extends State<CreateCity> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: zipInput,
           decoration: InputDecoration(
             hintText: "Zip",

@@ -79,6 +79,10 @@ class _JoinCityState extends State<JoinCity> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: cityInput,
           decoration: InputDecoration(
             hintText: "City Name",
@@ -91,6 +95,10 @@ class _JoinCityState extends State<JoinCity> {
         ),
         const SizedBox(height: 10),
         TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
           controller: zipInput,
           decoration: InputDecoration(
             hintText: "Zip",
