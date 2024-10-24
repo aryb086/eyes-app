@@ -50,11 +50,10 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  static const List<Widget> _pages = <Widget>[
+  static final List<Widget> _pages = <Widget>[
     Home(),
     Posts(),
-    Profile(),
+    const Profile(),
   ];
 }
-
 

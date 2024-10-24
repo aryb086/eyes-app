@@ -1,5 +1,5 @@
-import 'package:congressional_app/classes/user_info.dart';
-import 'package:congressional_app/globals.dart' as globals;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login.dart';
 import 'mainpage.dart';
@@ -40,7 +40,7 @@ class _SignUpPageState extends State<SignUpPage> {
         body: Container(
           margin: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _header(context),
               const SizedBox(
@@ -56,11 +56,18 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   _header(context) {
-    return AppBar(
-      title: const Text('Sign Up',
-          style: TextStyle(
-              color: Colors.black, fontSize: 30, fontWeight: FontWeight.bold)),
-      centerTitle: true,
+    return const Column(
+      children: [
+        Icon(Icons.visibility, size: 80),
+        SizedBox(
+          height: 25,
+        ),
+        Text('E Y E S',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+            )),
+      ],
     );
   }
 
@@ -135,7 +142,7 @@ class _SignUpPageState extends State<SignUpPage> {
         const SizedBox(height: 50),
         ElevatedButton(
           onPressed: () {
-            _signupLogic(context);
+            _signupLogic();
           },
           style: ElevatedButton.styleFrom(
             shape: const StadiumBorder(),
@@ -171,30 +178,48 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  _signupLogic(context) {
+  void _signupLogic() async {
     if (passwordInput.text == confirmPasswordInput.text) {
-      if (nameInput.text.isNotEmpty &&
-          passwordInput.text.isNotEmpty &&
-          emailInput.text.isNotEmpty &&
-          userInput.text.isNotEmpty) {
-        setState(() {
-          name = nameInput.text;
-          email = emailInput.text;
-          user = userInput.text;
-          password = passwordInput.text;
-          var userInfo = UserInfo(name, email, user, password, false, false);
-          globals.users[user] = userInfo;
-          globals.username = user;
-          for (int i = 0; i < globals.users.length; i++) {}
-        });
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
-        );
+      showDialog(
+        context: context,
+        builder: (context) => const Center(child: CircularProgressIndicator()));
+      try {
+        UserCredential? userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(email: emailInput.text, password: passwordInput.text);
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
+        createUserDoc(userCredential);
+        // ignore: use_build_context_synchronously
+        if (context.mounted) Navigator.pop(context);
+      } on FirebaseAuthException {
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
       }
+      Navigator.push(
+        // ignore: use_build_context_synchronously
+        context,
+        MaterialPageRoute(builder: (context) => const MainPage()),
+      );
     } else {
       passwordInput.clear();
       confirmPasswordInput.clear();
+    }
+  }
+
+  Future<void> createUserDoc(UserCredential? userCredential) async {
+    if (userCredential != null && userCredential.user != null) {
+      await FirebaseFirestore.instance
+          .collection('UserData')
+          .doc(userCredential.user!.email)
+          .set({
+        'name': nameInput.text,
+        'email': userCredential.user!.email,
+        'username': userInput.text,
+        'neighborhood setup': false,
+        'city setup': false,
+        'city name': '',
+        'neighborhood name': '',
+      });
     }
   }
 }

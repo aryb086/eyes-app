@@ -124,7 +124,7 @@ class _JoinCityState extends State<JoinCity> {
   }
   _findCityLogic(context) {
     if (global.cities[cityInput.text]?.getZip() == zipInput.text) {
-      global.users[global.username]!.citySetup = true;
+      global.users[global.email]!.citySetup = true;
       return Container(
         decoration: const BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(20)),

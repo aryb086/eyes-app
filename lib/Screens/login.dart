@@ -1,4 +1,5 @@
 import 'package:congressional_app/globals.dart' as globals;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'signup.dart';
 import 'mainpage.dart';
@@ -11,12 +12,12 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final userInput = TextEditingController();
+  final emailInput = TextEditingController();
   final passwordInput = TextEditingController();
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
-    userInput.dispose();
+    emailInput.dispose();
     passwordInput.dispose();
     super.dispose();
   }
@@ -29,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
         body: Container(
           margin: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _header(context),
               const SizedBox(
@@ -45,11 +46,18 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _header(context) {
-    return AppBar(
-      title: const Text('Welcome Back',
-          style: TextStyle(
-              color: Colors.black, fontSize: 30, fontWeight: FontWeight.bold)),
-      centerTitle: true,
+    return const Column(
+      children: [
+        Icon(Icons.visibility, size: 80),
+        SizedBox(
+          height: 25,
+        ),
+        Text('E Y E S',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+            )),
+      ],
     );
   }
 
@@ -58,15 +66,15 @@ class _LoginPageState extends State<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
-          controller: userInput,
+          controller: emailInput,
           decoration: InputDecoration(
-              hintText: "Username",
+              hintText: "Email",
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
                   borderSide: BorderSide.none),
               fillColor: Colors.black.withOpacity(0.1),
               filled: true,
-              prefixIcon: const Icon(Icons.person)),
+              prefixIcon: const Icon(Icons.email)),
         ),
         const SizedBox(height: 10),
         TextField(
@@ -121,18 +129,22 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  _loginLogic(context) {
-    var loggedIn = false;
-    if (globals.users[userInput.text]!.password == passwordInput.text) {
-      loggedIn = true;
-      globals.username = userInput.text;
+  _loginLogic(context) async {
+    showDialog(
+        context: context,
+        builder: (context) => const Center(child: CircularProgressIndicator()));
+    globals.email = emailInput.text;
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailInput.text, password: passwordInput.text);
+      globals.email = emailInput.text;
+      Navigator.pop(context);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const MainPage()),
       );
-    } else if (!loggedIn) {
-      userInput.clear();
-      passwordInput.clear();
+    } on FirebaseAuthException {
+      Navigator.pop(context);
     }
   }
 }

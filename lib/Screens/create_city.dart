@@ -1,8 +1,8 @@
-import 'package:congressional_app/classes/city_info.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'mainpage.dart';
-import 'package:congressional_app/globals.dart' as global;
 
 class CreateCity extends StatefulWidget {
   const CreateCity({super.key});
@@ -17,6 +17,9 @@ class _CreateCityState extends State<CreateCity> {
   final stateInput = TextEditingController();
   final countryInput = TextEditingController();
   bool ifButtonPressed = false;
+  
+  final User? currentUser = FirebaseAuth.instance.currentUser;
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -122,12 +125,18 @@ class _CreateCityState extends State<CreateCity> {
         const SizedBox(height: 50),
         ElevatedButton(
           onPressed: () {
-            global.users[global.username]!.citySetup = true;
-            global.cities[cityInput.text] = CityInfo(cityInput.text, zipInput.text, stateInput.text, countryInput.text);
+            try{
+              createCityDoc(cityInput.text, stateInput.text, countryInput.text, zipInput.text);
+              FirebaseFirestore.instance.collection('UserData').doc(currentUser!.email).update({'city setup': true});
+              FirebaseFirestore.instance.collection('UserData').doc(currentUser!.email).update({'city name': cityInput.text});
+            // ignore: empty_catches
+            }on FirebaseException{
+
+            }
             Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MainPage()),
-              );
+              context,
+              MaterialPageRoute(builder: (context) => const MainPage()),
+            );
           },
           style: ElevatedButton.styleFrom(
             shape: const StadiumBorder(),
@@ -141,5 +150,18 @@ class _CreateCityState extends State<CreateCity> {
         )
       ],
     );
+  }
+
+  Future<void> createCityDoc(
+      String city, String state, String country, String zip) async {
+    await FirebaseFirestore.instance
+        .collection('CityData')
+        .doc(city)
+        .set({
+      'city': city,
+      'state': state,
+      'country': country,
+      'zip': zip,
+    });
   }
 }

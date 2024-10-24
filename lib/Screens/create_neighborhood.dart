@@ -1,8 +1,8 @@
-import 'package:congressional_app/classes/city_info.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'mainpage.dart';
-import 'package:congressional_app/globals.dart' as global;
 
 class CreateNeighborhood extends StatefulWidget {
   const CreateNeighborhood({super.key});
@@ -12,11 +12,15 @@ class CreateNeighborhood extends StatefulWidget {
 }
 
 class _CreateNeighborhoodState extends State<CreateNeighborhood> {
+  final neighborhoodInput = TextEditingController();
   final cityInput = TextEditingController();
   final zipInput = TextEditingController();
   final stateInput = TextEditingController();
   final countryInput = TextEditingController();
   bool ifButtonPressed = false;
+
+  final User? currentUser = FirebaseAuth.instance.currentUser;
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -58,9 +62,9 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
             },
             icon: const Icon(Icons.close)),
       ),
-      title: const Text("Create a page for your city",
+      title: const Text("Neighborhood Page Creation",
           style: TextStyle(
-              color: Colors.black, fontSize: 20, fontStyle: FontStyle.italic)),
+              color: Colors.black, fontSize: 16, fontStyle: FontStyle.italic)),
       centerTitle: true,
     );
   }
@@ -69,6 +73,18 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        TextField(
+          controller: neighborhoodInput,
+          decoration: InputDecoration(
+            hintText: "Neighboorhood Name",
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide.none),
+            fillColor: Colors.black.withOpacity(0.1),
+            filled: true,
+          ),
+        ),
+        const SizedBox(height: 10),
         TextField(
           controller: cityInput,
           decoration: InputDecoration(
@@ -122,12 +138,24 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
         const SizedBox(height: 50),
         ElevatedButton(
           onPressed: () {
-            global.users[global.username]!.citySetup = true;
-            global.cities[cityInput.text] = CityInfo(cityInput.text, zipInput.text, stateInput.text, countryInput.text);
-            Navigator.push(
+            try {
+              createNeighborhoodDoc(neighborhoodInput.text, cityInput.text,
+                  stateInput.text, countryInput.text, zipInput.text);
+              FirebaseFirestore.instance
+                  .collection('UserData')
+                  .doc(currentUser!.email)
+                  .update({'neighborhood setup': true});
+              FirebaseFirestore.instance
+                  .collection('UserData')
+                  .doc(currentUser!.email)
+                  .update({'neighborhood name': neighborhoodInput.text});
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const MainPage()),
               );
+            // ignore: empty_catches
+            } on Exception {
+            }
           },
           style: ElevatedButton.styleFrom(
             shape: const StadiumBorder(),
@@ -141,5 +169,19 @@ class _CreateNeighborhoodState extends State<CreateNeighborhood> {
         )
       ],
     );
+  }
+
+  Future<void> createNeighborhoodDoc(String neighborhood, String city,
+      String state, String country, String zip) async {
+    await FirebaseFirestore.instance
+        .collection('NeighborhoodData')
+        .doc(neighborhood)
+        .set({
+      'neighborhood': neighborhood,
+      'city': city,
+      'state': state,
+      'country': country,
+      'zip': zip,
+    });
   }
 }
