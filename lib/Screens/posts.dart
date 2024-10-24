@@ -18,6 +18,8 @@ class _PostsState extends State<Posts> {
   final storageRef = FirebaseStorage.instance.ref();
   final captionInput = TextEditingController();
   late String postingWhere;
+  // ignore: prefer_typing_uninitialized_variables
+  var imageUrl;
   File? _selectedImage;
 
   final User? currentUser = FirebaseAuth.instance.currentUser;
@@ -223,9 +225,18 @@ class _PostsState extends State<Posts> {
         ),
         const SizedBox(height: 40),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
+            
+            if(_selectedImage != null){
+              String email = currentUser!.email ?? '';
+              final imageRef = storageRef.child('postImages').child(email + '.jpg');
+              await imageRef.putFile(_selectedImage!);
+              var imageUrl = await imageRef.getDownloadURL();
+            }else{
+              print("image not found");
+            }
             createPostDoc(
-                postingWhere, _selectedImage!.path, captionInput.text);
+                postingWhere, imageUrl, captionInput.text);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black,
