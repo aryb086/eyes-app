@@ -174,7 +174,7 @@ class _CreateCityState extends State<CreateCity> {
         .collection('CityData')
         .doc(city)
         .set({
-      'city': city,
+      'city hi': city,
       'state': state,
       'country': country,
       'zip': zip,
