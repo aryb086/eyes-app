@@ -2,22 +2,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'mainpage.dart';
+import '../../feed/screens/mainpage.dart';
 
-class CreateCity extends StatefulWidget {
-  const CreateCity({super.key});
+class CreateNeighborhood extends StatefulWidget {
+  const CreateNeighborhood({super.key});
 
   @override
-  State<CreateCity> createState() => _CreateCityState();
+  State<CreateNeighborhood> createState() => _CreateNeighborhoodState();
 }
 
-class _CreateCityState extends State<CreateCity> {
+class _CreateNeighborhoodState extends State<CreateNeighborhood> {
+  final neighborhoodInput = TextEditingController();
   final cityInput = TextEditingController();
   final zipInput = TextEditingController();
   final stateInput = TextEditingController();
   final countryInput = TextEditingController();
   bool ifButtonPressed = false;
-  
+
   final User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
@@ -61,9 +62,9 @@ class _CreateCityState extends State<CreateCity> {
             },
             icon: const Icon(Icons.close)),
       ),
-      title: const Text("Create a page for your city",
+      title: const Text("Neighborhood Page Creation",
           style: TextStyle(
-              color: Colors.black, fontSize: 20, fontStyle: FontStyle.italic)),
+              color: Colors.black, fontSize: 16, fontStyle: FontStyle.italic)),
       centerTitle: true,
     );
   }
@@ -72,6 +73,22 @@ class _CreateCityState extends State<CreateCity> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        TextField(
+          onTapOutside: (event) {
+                  print('onTapOutside');
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
+          controller: neighborhoodInput,
+          decoration: InputDecoration(
+            hintText: "Neighboorhood Name",
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(18),
+                borderSide: BorderSide.none),
+            fillColor: Colors.black.withOpacity(0.1),
+            filled: true,
+          ),
+        ),
+        const SizedBox(height: 10),
         TextField(
           onTapOutside: (event) {
                   print('onTapOutside');
@@ -141,18 +158,24 @@ class _CreateCityState extends State<CreateCity> {
         const SizedBox(height: 50),
         ElevatedButton(
           onPressed: () {
-            try{
-              createCityDoc(cityInput.text, stateInput.text, countryInput.text, zipInput.text);
-              FirebaseFirestore.instance.collection('UserData').doc(currentUser!.email).update({'city setup': true});
-              FirebaseFirestore.instance.collection('UserData').doc(currentUser!.email).update({'city name': cityInput.text});
+            try {
+              createNeighborhoodDoc(neighborhoodInput.text, cityInput.text,
+                  stateInput.text, countryInput.text, zipInput.text);
+              FirebaseFirestore.instance
+                  .collection('UserData')
+                  .doc(currentUser!.email)
+                  .update({'neighborhood setup': true});
+              FirebaseFirestore.instance
+                  .collection('UserData')
+                  .doc(currentUser!.email)
+                  .update({'neighborhood name': neighborhoodInput.text});
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MainPage()),
+              );
             // ignore: empty_catches
-            }on FirebaseException{
-
+            } on Exception {
             }
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MainPage()),
-            );
           },
           style: ElevatedButton.styleFrom(
             shape: const StadiumBorder(),
@@ -168,13 +191,14 @@ class _CreateCityState extends State<CreateCity> {
     );
   }
 
-  Future<void> createCityDoc(
-      String city, String state, String country, String zip) async {
+  Future<void> createNeighborhoodDoc(String neighborhood, String city,
+      String state, String country, String zip) async {
     await FirebaseFirestore.instance
-        .collection('CityData')
-        .doc(city)
+        .collection('NeighborhoodData')
+        .doc(neighborhood)
         .set({
-      'city hi': city,
+      'neighborhood': neighborhood,
+      'city': city,
       'state': state,
       'country': country,
       'zip': zip,

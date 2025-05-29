@@ -1,8 +1,8 @@
-import 'package:congressional_app/Screens/create_city.dart';
+import 'package:congressional_app/features/setup/screens/create_city.dart';
 import 'package:flutter/material.dart';
 
-import 'mainpage.dart';
-import 'package:congressional_app/globals.dart' as global;
+import '../../feed/screens/mainpage.dart';
+import 'package:congressional_app/common/globals.dart' as global;
 
 class JoinCity extends StatefulWidget {
   const JoinCity({super.key});
