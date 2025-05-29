@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'mainpage.dart';
+import '../../feed/screens/mainpage.dart';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});

@@ -1,8 +1,8 @@
-import 'package:congressional_app/globals.dart' as globals;
+import 'package:congressional_app/common/globals.dart' as globals;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'signup.dart';
-import 'mainpage.dart';
+import '../../feed/screens/mainpage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

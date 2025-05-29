@@ -2,8 +2,8 @@ library global;
 
 import 'package:congressional_app/classes/neighborhood_info.dart';
 
-import 'classes/user_info.dart';
-import 'classes/city_info.dart';
+import '../classes/user_info.dart';
+import '../classes/city_info.dart';
 
 String email = '';
 String zipCode = '';

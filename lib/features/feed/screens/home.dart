@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:congressional_app/Screens/join_city.dart';
-import 'package:congressional_app/Screens/join_nh.dart';
+import 'package:congressional_app/features/setup/screens/join_city.dart';
+import 'package:congressional_app/features/setup/screens/join_nh.dart';
 import 'package:congressional_app/classes/post_database.dart';
-import 'package:congressional_app/widgets/post_widget.dart';
+import 'package:congressional_app/common/widgets/post_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

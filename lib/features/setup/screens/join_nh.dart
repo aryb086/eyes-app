@@ -1,8 +1,8 @@
-import 'package:congressional_app/Screens/create_neighborhood.dart';
-import 'package:congressional_app/Screens/join_city.dart';
-import 'package:congressional_app/Screens/mainpage.dart';
+import 'package:congressional_app/features/setup/screens/create_neighborhood.dart';
+import 'package:congressional_app/features/setup/screens/join_city.dart';
+import 'package:congressional_app/features/feed/screens/mainpage.dart';
 import 'package:flutter/material.dart';
-import 'package:congressional_app/globals.dart' as global;
+import 'package:congressional_app/common/globals.dart' as global;
 
 class JoinNeighborhood extends StatefulWidget {
   const JoinNeighborhood({super.key});
