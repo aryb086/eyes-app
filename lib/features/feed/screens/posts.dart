@@ -275,11 +275,11 @@ class _PostsState extends State<Posts> {
   }
 
   String _randomString(length) {
-    const _chars =
+    const chars =
         'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     Random rnd = Random();
 
     return String.fromCharCodes(Iterable.generate(
-        length, (_) => _chars.codeUnitAt(rnd.nextInt(_chars.length))));
+        length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 }

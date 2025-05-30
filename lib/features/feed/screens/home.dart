@@ -236,8 +236,8 @@ _feed(context){
             String? email = currentUser!.email;
 
             return ListTile(
-              title: Text(description, style: TextStyle(color: Colors.black, fontSize: 15,)),
-              subtitle: Text("aryb086")
+              title: Text(description, style: const TextStyle(color: Colors.black, fontSize: 15,)),
+              subtitle: const Text("aryb086")
             );
           },
         )
