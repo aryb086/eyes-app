@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'posts.dart';
 import 'home.dart';
-import '../../settings/screens/profile.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
