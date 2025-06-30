@@ -1,13 +1,18 @@
 import React from "react";
-import Navbar from "./components/layout/NavBar";
-import Hero from "./components/layout/Hero";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Landing from './/components/pages/landing.js'
+import LoginPage from './/components/pages/login.js'
+import StartPage from './/components/pages/startpage.js'
 
 function App() {
   return (
-    <div>
-      <Navbar></Navbar>
-      <Hero></Hero>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/start" element={<StartPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
