@@ -40,16 +40,10 @@ function Navbar(){
                     Login
                 </li>
                 <li 
-                    className={`px-3 py-2 hover:text-[#9fe7ff] cursor-pointer transition-colors ${isActive('/about')}`}
-                    onClick={() => navigateTo('/about')}
+                    className={`px-3 py-2 hover:text-[#9fe7ff] cursor-pointer transition-colors ${isActive('/start')}`}
+                    onClick={() => navigateTo('/start')}
                 >
-                    About
-                </li>
-                <li 
-                    className={`px-3 py-2 hover:text-[#9fe7ff] cursor-pointer transition-colors ${isActive('/support')}`}
-                    onClick={() => navigateTo('/support')}
-                >
-                    Support
+                    Get Started
                 </li>
             </ul>
             <div onClick={handleNav} className="block md:hidden z-50">
@@ -73,16 +67,10 @@ function Navbar(){
                     Login
                 </li>
                 <li 
-                    className={`p-4 border-b border-gray-600 hover:text-[#9fe7ff] cursor-pointer transition-colors ${isActive('/about')}`}
-                    onClick={() => navigateTo('/about')}
+                    className={`p-4 border-b border-gray-600 hover:text-[#9fe7ff] cursor-pointer transition-colors ${isActive('/start')}`}
+                    onClick={() => navigateTo('/start')}
                 >
-                    About
-                </li>
-                <li 
-                    className={`p-4 hover:text-[#9fe7ff] cursor-pointer transition-colors ${isActive('/support')}`}
-                    onClick={() => navigateTo('/support')}
-                >
-                    Support
+                    Get Started
                 </li>
                 </ul>
             </div>
