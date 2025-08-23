@@ -1,0 +1,260 @@
+.cityDirectory {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  color: #f8fafc;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  background-color: #1e293b;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.selectContainer,
+.searchContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+}
+
+.select,
+.searchInput {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #f8fafc;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.select:focus,
+.searchInput:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+.searchContainer {
+  position: relative;
+}
+
+.searchInput {
+  padding-left: 2.5rem;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+
+.prompt,
+.noResults {
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: #1e293b;
+  border-radius: 0.75rem;
+  color: #94a3b8;
+  font-size: 1.1rem;
+}
+
+.citiesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.cityCard {
+  background-color: #1e293b;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+}
+
+.cityCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.cityHeader {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #334155;
+}
+
+.cityHeader h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.cityLink {
+  color: #f8fafc;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.cityLink:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.neighborhoodCount {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.neighborhoods {
+  padding: 1rem 1.5rem;
+  flex-grow: 1;
+}
+
+.neighborhoods h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+
+.neighborhoodTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.neighborhoodTag {
+  background-color: rgba(100, 116, 139, 0.2);
+  color: #e2e8f0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.moreNeighborhoods {
+  color: #60a5fa;
+  font-size: 0.8rem;
+  align-self: center;
+  margin-left: 0.25rem;
+}
+
+.cityActions {
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid #334155;
+  margin-top: auto;
+}
+
+.viewButton {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.viewButton:hover {
+  background-color: #2563eb;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: #94a3b8;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .citiesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .controls {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cityDirectory {
+    padding: 1.5rem 1rem;
+  }
+  
+  .header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .citiesGrid {
+    grid-template-columns: 1fr;
+  }
+}

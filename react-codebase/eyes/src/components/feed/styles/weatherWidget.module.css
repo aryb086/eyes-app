@@ -1,0 +1,157 @@
+/* Weather Widget Container */
+.weatherWidget {
+  background-color: #1e293b;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.weatherHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.weatherHeader h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.location {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Current Weather */
+.currentWeather {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #334155;
+}
+
+.currentTemp {
+  display: flex;
+  flex-direction: column;
+}
+
+.tempValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.weatherCondition {
+  font-size: 1rem;
+  color: #9fe7ff;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.highLow {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.weatherIcon {
+  font-size: 4rem;
+  color: #f59e0b; /* Yellow for sun */
+}
+
+/* Weather Icons */
+.sunny {
+  color: #f59e0b; /* Yellow */
+}
+
+.cloudy {
+  color: #94a3b8; /* Gray */
+}
+
+.rain {
+  color: #60a5fa; /* Blue */
+}
+
+.snow {
+  color: #e0f2fe; /* Light blue */
+}
+
+.thunderstorm {
+  color: #818cf8; /* Indigo */
+}
+
+.fog {
+  color: #cbd5e1; /* Light gray */
+}
+
+/* Forecast */
+.forecast {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.forecastDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.forecastDay:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.forecastDayName {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.forecastIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.forecastTemp {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .weatherWidget {
+    padding: 1rem;
+  }
+  
+  .tempValue {
+    font-size: 2rem;
+  }
+  
+  .weatherIcon {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .weatherWidget {
+    display: none; /* Hide on mobile */
+  }
+}
