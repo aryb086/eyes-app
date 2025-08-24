@@ -1,14 +1,15 @@
 import axios from 'axios';
+import { API_URL as BASE_API_URL } from './api';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api/v1';
-const API_URL = `${BASE_URL}/auth`;
+// Consolidated auth base URL
+const AUTH_URL = `${BASE_API_URL}/auth`;
 
 const register = async (userData) => {
   try {
-    console.log('Sending registration request to:', `${API_URL}/register`);
+    console.log('Sending registration request to:', `${AUTH_URL}/register`);
     console.log('Registration data:', JSON.stringify(userData, null, 2));
     
-    const response = await axios.post(`${API_URL}/register`, userData, {
+    const response = await axios.post(`${AUTH_URL}/register`, userData, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -50,7 +51,7 @@ const register = async (userData) => {
 
 const login = async (credentials) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, credentials);
+    const response = await axios.post(`${AUTH_URL}/login`, credentials);
     if (response.data.token) {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       localStorage.setItem('token', response.data.token);
@@ -83,7 +84,7 @@ const getAuthHeader = () => {
 const requestPasswordReset = async (email) => {
   try {
     // Call the backend API to handle password reset request
-    const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+    const response = await axios.post(`${AUTH_URL}/forgot-password`, { email });
   
     // The backend will handle sending the email
     if (!response.data.success) {
@@ -107,7 +108,7 @@ const requestPasswordReset = async (email) => {
 const resetPassword = async (token, { password }) => {
   try {
     // Call the backend API to handle password reset
-    const response = await axios.post(`${API_URL}/auth/reset-password`, {
+    const response = await axios.post(`${AUTH_URL}/reset-password`, {
       token,
       password
     });

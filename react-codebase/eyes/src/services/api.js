@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+// Support both env names; CRA inlines these at build time
+export const API_URL =
+  process.env.REACT_APP_API_URL ||
+  process.env.REACT_APP_API_BASE_URL ||
+  'http://localhost:5000/api/v1';
 
 // Create axios instance
 const api = axios.create({
