@@ -1,0 +1,38 @@
+.git/
+.vercel/
+**/node_modules/
+**/.cache/
+**/.parcel-cache/
+**/.next/
+**/.nuxt/
+**/dist/
+**/out/
+**/coverage/
+**/build/  # allow CRA build via vercel.json; this prevents uploading prebuilds
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Python backend (not part of frontend deploy)
+backend/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+.env
+.env.*
+
+# Logs and misc
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json  # not needed for Vercel upload, install uses lockfile in builder
+pnpm-lock.yaml
+
+# Tests and docs
+**/test/
+**/tests/
+**/__tests__/
+**/docs/
