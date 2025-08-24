@@ -42,3 +42,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .vercel
+
+# Environment files (ignore all .env files in any folder)
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
+# Keep example envs tracked
+!**/.env.example
