@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Backend Service (Node.js) - Heroku compatible
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-90d}
+      - JWT_COOKIE_EXPIRES_IN=${JWT_COOKIE_EXPIRES_IN:-90}
+      - PORT=${PORT:-5000}
+    ports:
+      - "${PORT:-5000}:5000"
+    restart: unless-stopped
+
+  # Frontend Service (React) - Heroku compatible
+  frontend:
+    build:
+      context: ./react-codebase/eyes
+      dockerfile: Dockerfile
+    environment:
+      - BACKEND_URL=${BACKEND_URL}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped 

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { getApiUrl } from './api';
 
-const API_URL = 'http://localhost:5001/api/v1/users';
+const API_URL = `${getApiUrl()}/users`;
 
 const getAuthHeader = () => ({
   headers: {

@@ -2,8 +2,9 @@ const dotenv = require('dotenv');
 const path = require('path');
 const Joi = require('joi');
 
-// Load environment variables from .env file
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load environment variables from .env file (optional, for local development)
+// In production (Heroku), environment variables are already set
+dotenv.config({ path: path.join(__dirname, '../.env'), silent: true });
 
 // Define the schema for environment variables
 const envVarsSchema = Joi.object()
@@ -12,8 +13,8 @@ const envVarsSchema = Joi.object()
     PORT: Joi.number().default(5000),
     MONGODB_URI: Joi.string().required().description('MongoDB connection URL'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
-    JWT_EXPIRE: Joi.string().default('30d').description('JWT expiration time'),
-    JWT_COOKIE_EXPIRE: Joi.number().default(30).description('JWT cookie expire days'),
+    JWT_EXPIRES_IN: Joi.string().default('90d').description('JWT expiration time'),
+    JWT_COOKIE_EXPIRES_IN: Joi.number().default(90).description('JWT cookie expire days'),
     SMTP_HOST: Joi.string().description('SMTP server host'),
     SMTP_PORT: Joi.number().description('SMTP server port'),
     SMTP_USERNAME: Joi.string().description('SMTP username'),
@@ -53,16 +54,15 @@ module.exports = {
   mongoose: {
     url: envVars.MONGODB_URI + (envVars.NODE_ENV === 'test' ? '-test' : ''),
     options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      // useCreateIndex: true, // Not supported in Mongoose 6+
-      // useFindAndModify: false, // Not supported in Mongoose 6+
+      // Remove deprecated options for newer Mongoose versions
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     },
   },
   jwt: {
     secret: envVars.JWT_SECRET,
-    expire: envVars.JWT_EXPIRE,
-    cookieExpire: envVars.JWT_COOKIE_EXPIRE,
+    expire: envVars.JWT_EXPIRES_IN || envVars.JWT_EXPIRE || '90d',
+    cookieExpire: envVars.JWT_COOKIE_EXPIRES_IN || envVars.JWT_COOKIE_EXPIRE || 90,
   },
   email: {
     smtp: {

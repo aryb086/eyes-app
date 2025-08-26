@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { getApiUrl } from './api';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api/v1';
+const BASE_URL = getApiUrl();
 const API_URL = `${BASE_URL}/posts`;
 
 const getAuthHeader = () => {

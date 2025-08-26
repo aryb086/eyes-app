@@ -1,8 +1,9 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
-// Load environment variables first
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load environment variables (optional, for local development)
+// In production (Heroku), environment variables are already set
+dotenv.config({ path: path.join(__dirname, '../.env'), silent: true });
 
 // Import config after environment variables are loaded
 const config = require('./config/config');

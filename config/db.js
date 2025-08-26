@@ -14,6 +14,9 @@ const options = {
 // Create the database connection
 const connectDB = async () => {
   try {
+    logger.info('Attempting to connect to MongoDB...');
+    logger.info(`MongoDB URI: ${config.mongoose.url}`);
+    
     await mongoose.connect(config.mongoose.url, options);
     logger.info('MongoDB connected successfully');
 
@@ -40,8 +43,9 @@ const connectDB = async () => {
     });
   } catch (error) {
     logger.error(`MongoDB connection error: ${error.message}`);
-    // Exit process with failure
-    process.exit(1);
+    logger.error('App will continue running without database connection');
+    // Don't exit the process - let the app continue
+    // process.exit(1); // REMOVED THIS LINE
   }
 };
 
@@ -52,4 +56,4 @@ process.on('unhandledRejection', (err) => {
   // server.close(() => process.exit(1));
 });
 
-module.exports = connectDB;
+module.exports = connectDB; 
