@@ -45,8 +45,22 @@ connectDB();
 // Set security HTTP headers
 app.use(setSecurityHeaders);
 
-// Development logging
+// Development logging with detailed request info
 if (config.env === 'development') {
+  // Detailed request logging middleware
+  app.use((req, res, next) => {
+    logger.http(`Incoming Request: ${req.method} ${req.originalUrl}`, {
+      headers: req.headers,
+      body: req.body,
+      query: req.query,
+      params: req.params,
+      ip: req.ip,
+      timestamp: new Date().toISOString()
+    });
+    next();
+  });
+  
+  // Standard HTTP logging
   app.use(morgan('dev', { stream: { write: message => logger.http(message.trim()) } }));
 }
 
@@ -67,26 +81,44 @@ app.use(preventHttpParamPollution);
 // Sanitize request data
 app.use(sanitizeData);
 
-// Enable CORS with multiple allowed origins (supports Windsurf preview and localhost)
+// Enable CORS with multiple allowed origins
 const allowedOrigins = [
-  config.clientUrl || 'http://localhost:3000',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'http://frontend:80',
+  'http://frontend',
+  'http://localhost:61498',
   'http://127.0.0.1:61498',
-  'http://localhost:61498'
+  config.clientUrl || 'http://localhost:3000'
 ];
+
+// Log allowed origins in development
+if (config.env === 'development') {
+  console.log('Allowed CORS origins:', allowedOrigins);
+}
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow non-browser requests (no origin) and any in the allowlist
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is allowed
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+    
+    // Log blocked origins in development
+    if (config.env === 'development') {
+      console.log('Blocked by CORS:', origin);
+    }
+    
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+  maxAge: 86400 // 24 hours
 }));
 
 // Set static folder
@@ -163,8 +195,9 @@ process.on('uncaughtException', (err) => {
 
 // Start server
 const PORT = config.port || 5000;
-server.listen(PORT, () => {
-  logger.info(`Server running in ${config.env} mode on port ${PORT}`);
+const HOST = '0.0.0.0'; // Listen on all network interfaces
+server.listen(PORT, HOST, () => {
+  logger.info(`Server running in ${config.env} mode on ${HOST}:${PORT}`);
 });
 
 // Handle SIGTERM for graceful shutdown

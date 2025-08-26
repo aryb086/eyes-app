@@ -142,22 +142,45 @@ exports.getPost = async (req, res, next) => {
 // @access  Private
 exports.createPost = async (req, res, next) => {
   try {
-    // Add user to req.body
-    req.body.author = req.user.id;
+    console.log('=== CREATE POST REQUEST ===');
+    console.log('Request body:', req.body);
+    console.log('User ID:', req.user.id);
+    console.log('Headers:', req.headers);
+    
+    // Add user and location data to req.body
+    const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
+    
+    const postData = {
+      ...req.body,
+      author: req.user.id,
+      cityId: req.body.cityId || user.cityId,
+      stateCode: req.body.stateCode || user.stateCode,
+      neighborhood: req.body.neighborhood || user.neighborhood
+    };
+    
+    console.log('Post data with location:', postData);
 
-    const post = await Post.create(req.body);
+    const post = await Post.create(postData);
+    console.log('Post created successfully:', post);
 
-    // Populate author details
-    const populatedPost = await Post.findById(post._id).populate({
-      path: 'author',
-      select: 'username fullName profilePicture'
-    });
+    // Add post to user's posts array
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id, 
+      {
+        $push: { posts: post._id },
+        $inc: { postCount: 1 }
+      },
+      { new: true }
+    );
+    
+    console.log('User updated with new post:', updatedUser);
 
     res.status(201).json({
       success: true,
-      data: populatedPost
+      data: post
     });
   } catch (err) {
+    console.error('Error creating post:', err);
     next(err);
   }
 };

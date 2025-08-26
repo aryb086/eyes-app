@@ -40,6 +40,26 @@ const postSchema = new mongoose.Schema({
   location: {
     type: String,
     trim: true
+  },
+  scope: {
+    type: String,
+    enum: ['neighborhood', 'city', 'state', 'global'],
+    default: 'neighborhood',
+    required: true
+  },
+  cityId: {
+    type: String,
+    required: true
+  },
+  stateCode: {
+    type: String,
+    required: true
+  },
+  neighborhood: {
+    type: String,
+    required: function() {
+      return this.scope === 'neighborhood';
+    }
   }
 }, {
   timestamps: true,

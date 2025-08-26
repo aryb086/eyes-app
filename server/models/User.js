@@ -111,12 +111,12 @@ userSchema.virtual('postCount', {
 
 // Virtual for user's follower count
 userSchema.virtual('followerCount').get(function() {
-  return this.followers.length;
+  return (this.followers && this.followers.length) || 0;
 });
 
 // Virtual for user's following count
 userSchema.virtual('followingCount').get(function() {
-  return this.following.length;
+  return (this.following && this.following.length) || 0;
 });
 
 const User = mongoose.model('User', userSchema);
