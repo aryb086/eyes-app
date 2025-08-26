@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { API_URL as BASE_API_URL } from './api';
+import { API_URL as BASE_API_URL, getApiUrl } from './api';
 
 // Consolidated auth base URL
-const AUTH_URL = `${BASE_API_URL}/auth`;
+const AUTH_URL = `${getApiUrl()}/auth`;
 
 const register = async (userData) => {
   try {

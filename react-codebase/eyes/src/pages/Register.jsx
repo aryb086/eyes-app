@@ -56,7 +56,7 @@ function Register() {
     } catch (err) {
       console.error('Registration error:', err);
       setError({
-        message: err?.message || 'Failed to create an account. Please try again.'
+        message: err?.response?.data?.message || err?.message || 'Failed to create an account. Please try again.'
       });
     }
     

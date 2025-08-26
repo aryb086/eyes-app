@@ -6,6 +6,15 @@ export const API_URL =
   process.env.REACT_APP_API_BASE_URL ||
   'http://localhost:5000/api/v1';
 
+// Ensure API URL ends with /v1 for production
+export const getApiUrl = () => {
+  const baseUrl = API_URL;
+  if (baseUrl.includes('congressional-app-backend') && !baseUrl.endsWith('/v1')) {
+    return `${baseUrl}/v1`;
+  }
+  return baseUrl;
+};
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
