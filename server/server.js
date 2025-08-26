@@ -81,39 +81,10 @@ app.use(preventHttpParamPollution);
 // Sanitize request data
 app.use(sanitizeData);
 
-// Enable CORS with multiple allowed origins
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://frontend:80',
-  'http://frontend',
-  'http://localhost:61498',
-  'http://127.0.0.1:61498',
-  config.clientUrl || 'http://localhost:3000'
-];
-
-// Log allowed origins in development
-if (config.env === 'development') {
-  console.log('Allowed CORS origins:', allowedOrigins);
-}
-
+// Enable CORS for all origins (temporarily for testing)
+console.log('Enabling CORS for all origins');
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is allowed
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // Log blocked origins in development
-    if (config.env === 'development') {
-      console.log('Blocked by CORS:', origin);
-    }
-    
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -195,9 +166,12 @@ process.on('uncaughtException', (err) => {
 
 // Start server
 const PORT = config.port || 5000;
-const HOST = '0.0.0.0'; // Listen on all network interfaces
+const HOST = '0.0.0.0'; // Listen on all network interfaces // Listen on all network interfaces
+// Start the server
 server.listen(PORT, HOST, () => {
   logger.info(`Server running in ${config.env} mode on ${HOST}:${PORT}`);
+  logger.info(`MongoDB URI: ${config.mongoose.url}`);
+  logger.info(`CORS enabled for all origins`);
 });
 
 // Handle SIGTERM for graceful shutdown
