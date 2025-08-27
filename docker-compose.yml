@@ -27,7 +27,7 @@ services:
   backend:
     build:
       context: ./server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: backend
     environment:
       - NODE_ENV=development
@@ -60,6 +60,8 @@ services:
       context: ./react-codebase/eyes
       dockerfile: Dockerfile
     container_name: frontend
+    environment:
+      - BACKEND_URL=http://backend:5000
     ports:
       - "80:80"
     depends_on:

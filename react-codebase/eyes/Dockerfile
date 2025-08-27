@@ -22,7 +22,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # Install envsubst for environment variable substitution
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash gettext
 
 # Copy built assets from build stage
 COPY --from=build /app/build /usr/share/nginx/html
@@ -30,12 +30,11 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Copy nginx config template
 COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
-# Copy startup script
-COPY docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
+# Copy nginx config directly
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
 EXPOSE 80
 
-# Start nginx with environment variable substitution
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
