@@ -1,0 +1,19 @@
+{
+  "name": "eyes-app",
+  "version": "1.0.0",
+  "description": "Eyes App - Full Stack Application",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "cd server && npm start",
+    "build": "cd server && npm install",
+    "postinstall": "cd server && npm install",
+    "dev": "cd server && npm run dev"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "keywords": ["eyes", "app", "fullstack", "react", "node"],
+  "author": "Aryan Bansal",
+  "license": "ISC"
+}
