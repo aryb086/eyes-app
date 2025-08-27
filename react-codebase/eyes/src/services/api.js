@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 // Support both env names; CRA inlines these at build time
+// This file handles API configuration for both development and production environments
 export const API_URL =
   process.env.REACT_APP_API_URL ||
   process.env.REACT_APP_API_BASE_URL ||
