@@ -1,0 +1,205 @@
+# Deployment Configuration for Eyes App
+# This file defines deployment environments and their configurations
+
+environments:
+  development:
+    description: "Local development environment"
+    docker_compose: "docker-compose.yml"
+    ports:
+      frontend: 80
+      backend: 5001
+      mongodb: 27017
+    environment_variables:
+      NODE_ENV: "development"
+      MONGODB_URI: "mongodb://root:example@mongodb:27017/eyes_app?authSource=admin"
+      JWT_SECRET: "dev_secret_key"
+      LOG_LEVEL: "debug"
+    features:
+      hot_reload: true
+      debug_mode: true
+      local_database: true
+
+  staging:
+    description: "Staging environment for testing"
+    docker_compose: "docker-compose.staging.yml"
+    ports:
+      frontend: 8080
+      backend: 5002
+      mongodb: 27018
+    environment_variables:
+      NODE_ENV: "staging"
+      MONGODB_URI: "mongodb+srv://user:pass@cluster.mongodb.net/eyes_app_staging"
+      JWT_SECRET: "staging_secret_key"
+      LOG_LEVEL: "info"
+    features:
+      hot_reload: false
+      debug_mode: false
+      local_database: false
+    external_services:
+      mongodb: "MongoDB Atlas"
+      monitoring: "Sentry"
+      logging: "CloudWatch"
+
+  production:
+    description: "Production environment"
+    docker_compose: "docker-compose.prod.yml"
+    ports:
+      frontend: 80
+      backend: 5000
+      mongodb: 27017
+    environment_variables:
+      NODE_ENV: "production"
+      MONGODB_URI: "mongodb+srv://user:pass@cluster.mongodb.net/eyes_app_prod"
+      JWT_SECRET: "production_secret_key"
+      LOG_LEVEL: "warn"
+    features:
+      hot_reload: false
+      debug_mode: false
+      local_database: false
+    external_services:
+      mongodb: "MongoDB Atlas"
+      monitoring: "Sentry"
+      logging: "CloudWatch"
+      cdn: "CloudFront"
+      ssl: "Let's Encrypt"
+
+deployment_platforms:
+  docker:
+    description: "Docker-based deployment"
+    advantages:
+      - "Full control over infrastructure"
+      - "Consistent environments"
+      - "Easy scaling"
+      - "Portable"
+    requirements:
+      - "Docker and Docker Compose"
+      - "Server with Docker support"
+      - "Domain and SSL certificate"
+    commands:
+      deploy: "./deploy-docker.sh [environment]"
+      stop: "docker-compose -f [file] down"
+      logs: "docker-compose -f [file] logs -f"
+      status: "docker-compose -f [file] ps"
+
+  vercel:
+    description: "Vercel frontend deployment"
+    advantages:
+      - "Zero configuration"
+      - "Automatic deployments"
+      - "Global CDN"
+      - "Free tier available"
+    requirements:
+      - "Vercel account"
+      - "GitHub integration"
+      - "Environment variables configured"
+    commands:
+      deploy: "./deploy-vercel.sh [environment]"
+      status: "vercel ls"
+      logs: "vercel logs [url]"
+
+  heroku:
+    description: "Heroku platform deployment"
+    advantages:
+      - "Easy deployment"
+      - "Automatic scaling"
+      - "Add-ons ecosystem"
+      - "Free tier available"
+    requirements:
+      - "Heroku account"
+      - "Heroku CLI"
+      - "Credit card for add-ons"
+    commands:
+      deploy: "./deploy-heroku.sh [app-name] [environment]"
+      status: "heroku ps --app [app-name]"
+      logs: "heroku logs --tail --app [app-name]"
+
+  github_actions:
+    description: "Automated CI/CD pipeline"
+    advantages:
+      - "Automated testing"
+      - "Automated deployment"
+      - "Version control integration"
+      - "Multiple platform support"
+    requirements:
+      - "GitHub repository"
+      - "Secrets configured"
+      - "Workflow files"
+    features:
+      - "Automated testing on PR"
+      - "Security audits"
+      - "Multi-platform deployment"
+      - "Deployment notifications"
+
+required_secrets:
+  docker:
+    - "DOCKER_USERNAME"
+    - "DOCKER_PASSWORD"
+  
+  vercel:
+    - "VERCEL_TOKEN"
+    - "ORG_ID"
+    - "PROJECT_ID"
+  
+  heroku:
+    - "HEROKU_API_KEY"
+    - "HEROKU_EMAIL"
+    - "HEROKU_BACKEND_APP_NAME"
+    - "HEROKU_FRONTEND_APP_NAME"
+
+deployment_checklist:
+  pre_deployment:
+    - "Environment variables configured"
+    - "Dependencies installed"
+    - "Tests passing"
+    - "Security audit clean"
+    - "Database migrations ready"
+  
+  deployment:
+    - "Build successful"
+    - "Health checks passing"
+    - "Services responding"
+    - "Logs showing normal operation"
+  
+  post_deployment:
+    - "Frontend accessible"
+    - "Backend API responding"
+    - "Database connections working"
+    - "Monitoring active"
+    - "SSL certificates valid"
+
+monitoring_setup:
+  health_checks:
+    - "Backend API endpoint"
+    - "Frontend static files"
+    - "Database connectivity"
+    - "External service dependencies"
+  
+  metrics:
+    - "Response times"
+    - "Error rates"
+    - "Resource usage"
+    - "User activity"
+  
+  alerts:
+    - "Service down"
+    - "High error rate"
+    - "Resource exhaustion"
+    - "Security incidents"
+
+rollback_procedure:
+  automatic:
+    - "Health check failures"
+    - "High error rates"
+    - "Performance degradation"
+  
+  manual:
+    - "User reports issues"
+    - "Security concerns"
+    - "Feature problems"
+  
+  steps:
+    - "Stop current deployment"
+    - "Revert to previous version"
+    - "Verify functionality"
+    - "Investigate root cause"
+    - "Plan fix and redeploy"

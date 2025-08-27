@@ -2,7 +2,6 @@ class ErrorResponse extends Error {
   constructor(message, statusCode) {
     super(message);
     this.statusCode = statusCode;
-    this.isOperational = true; // Mark as operational error for proper error handling
 
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
@@ -28,4 +27,4 @@ class ErrorResponse extends Error {
   }
 }
 
-module.exports = ErrorResponse; 
+module.exports = ErrorResponse;
