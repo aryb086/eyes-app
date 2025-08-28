@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .connecting { background-color: #fff3cd; color: #856404; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .fallback { background-color: #d1ecf1; color: #0c5460; }
+        
+        .message {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test Client</h1>
+    
+    <div id="status" class="status disconnected">Disconnected</div>
+    
+    <div>
+        <button id="connectBtn" onclick="connect()">Connect</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+        <button id="testBtn" onclick="testConnection()" disabled>Test Message</button>
+    </div>
+    
+    <div>
+        <h3>Test Post Creation</h3>
+        <input type="text" id="postTitle" placeholder="Post Title" value="Test Post">
+        <textarea id="postContent" placeholder="Post Content" rows="3">This is a test post from the WebSocket client</textarea>
+        <button onclick="createPost()" disabled>Create Post</button>
+    </div>
+    
+    <div>
+        <h3>Test Like</h3>
+        <input type="text" id="postId" placeholder="Post ID" value="123">
+        <button onclick="likePost()" disabled>Like Post</button>
+    </div>
+    
+    <div>
+        <h3>Join Room</h3>
+        <input type="text" id="roomType" placeholder="Room Type" value="city">
+        <input type="text" id="roomLocation" placeholder="Location" value="Seattle">
+        <button onclick="joinRoom()" disabled>Join Room</button>
+    </div>
+    
+    <div>
+        <h3>Message Log</h3>
+        <div id="log" class="log"></div>
+    </div>
+    
+    <script>
+        let ws = null;
+        let isConnected = false;
+        
+        function updateStatus(status, message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = message;
+            
+            // Update button states
+            document.getElementById('connectBtn').disabled = isConnected;
+            document.getElementById('disconnectBtn').disabled = !isConnected;
+            document.getElementById('testBtn').disabled = !isConnected;
+            document.querySelectorAll('button:not(#connectBtn):not(#disconnectBtn)').forEach(btn => {
+                btn.disabled = !isConnected;
+            });
+        }
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function connect() {
+            try {
+                log('Attempting to connect to WebSocket server...');
+                ws = new WebSocket('ws://localhost:3001');
+                
+                ws.onopen = function() {
+                    isConnected = true;
+                    updateStatus('connected', 'Connected to WebSocket server');
+                    log('✅ WebSocket connection established');
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        log(`📨 Received: ${data.type} - ${JSON.stringify(data.data)}`);
+                    } catch (error) {
+                        log(`❌ Error parsing message: ${error.message}`);
+                    }
+                };
+                
+                ws.onclose = function(event) {
+                    isConnected = false;
+                    updateStatus('disconnected', `Disconnected (Code: ${event.code})`);
+                    log(`❌ WebSocket connection closed: ${event.code} - ${event.reason}`);
+                };
+                
+                ws.onerror = function(error) {
+                    isConnected = false;
+                    updateStatus('error', 'Connection error');
+                    log(`❌ WebSocket error: ${error.message}`);
+                };
+                
+            } catch (error) {
+                log(`❌ Failed to create WebSocket: ${error.message}`);
+                updateStatus('error', 'Failed to create connection');
+            }
+        }
+        
+        function disconnect() {
+            if (ws) {
+                ws.close(1000, 'Client disconnecting');
+                ws = null;
+                isConnected = false;
+                updateStatus('disconnected', 'Disconnected');
+                log('🔌 WebSocket connection closed by client');
+            }
+        }
+        
+        function testConnection() {
+            if (ws && isConnected) {
+                const message = {
+                    type: 'ping',
+                    data: { message: 'Hello from test client!' }
+                };
+                ws.send(JSON.stringify(message));
+                log(`📤 Sent: ${message.type} - ${JSON.stringify(message.data)}`);
+            }
+        }
+        
+        function createPost() {
+            if (ws && isConnected) {
+                const postData = {
+                    type: 'create_post',
+                    data: {
+                        title: document.getElementById('postTitle').value,
+                        content: document.getElementById('postContent').value,
+                        location: {
+                            city: 'Seattle',
+                            neighborhood: 'Capitol Hill'
+                        }
+                    }
+                };
+                ws.send(JSON.stringify(postData));
+                log(`📤 Sent: ${postData.type} - ${JSON.stringify(postData.data)}`);
+            }
+        }
+        
+        function likePost() {
+            if (ws && isConnected) {
+                const likeData = {
+                    type: 'like_post',
+                    data: {
+                        postId: document.getElementById('postId').value,
+                        location: {
+                            city: 'Seattle',
+                            neighborhood: 'Capitol Hill'
+                        }
+                    }
+                };
+                ws.send(JSON.stringify(likeData));
+                log(`📤 Sent: ${likeData.type} - ${JSON.stringify(likeData.data)}`);
+            }
+        }
+        
+        function joinRoom() {
+            if (ws && isConnected) {
+                const roomData = {
+                    type: 'join_room',
+                    data: {
+                        room: document.getElementById('roomType').value,
+                        location: document.getElementById('roomLocation').value
+                    }
+                };
+                ws.send(JSON.stringify(roomData));
+                log(`📤 Sent: ${roomData.type} - ${JSON.stringify(roomData.data)}`);
+            }
+        }
+        
+        // Auto-connect on page load
+        window.onload = function() {
+            log('🚀 WebSocket test client loaded');
+            log('Click "Connect" to establish WebSocket connection');
+        };
+    </script>
+</body>
+</html>
