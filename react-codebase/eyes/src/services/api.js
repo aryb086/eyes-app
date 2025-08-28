@@ -5,7 +5,7 @@ import axios from 'axios';
 export const API_URL =
   process.env.REACT_APP_API_URL ||
   process.env.REACT_APP_API_BASE_URL ||
-  'http://localhost:3001/api/v1';
+  'https://congressional-app-backend-ff9b28494ff1.herokuapp.com/api/v1';
 
 // Ensure API URL ends with /v1 for production
 export const getApiUrl = () => {
