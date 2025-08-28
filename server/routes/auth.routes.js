@@ -84,4 +84,14 @@ router.put(
   authController.resetPassword
 );
 
+// @route   POST /api/auth/google
+// @desc    Google OAuth authentication
+// @access  Public
+router.post('/google', authController.googleAuth);
+
+// @route   POST /api/auth/github
+// @desc    GitHub OAuth authentication
+// @access  Public
+router.post('/github', authController.githubAuth);
+
 module.exports = router;

@@ -24,7 +24,10 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
+    required: function() {
+      // Password is required only if not using OAuth
+      return !this.googleId && !this.githubId;
+    },
     minlength: [6, 'Password must be at least 6 characters long'],
     select: false
   },
@@ -59,7 +62,11 @@ const userSchema = new mongoose.Schema({
     default: 'user'
   },
   resetPasswordToken: String,
-  resetPasswordExpire: Date
+  resetPasswordExpire: Date,
+  // OAuth fields
+  googleId: String,
+  githubId: String,
+  avatar: String
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -69,6 +76,11 @@ const userSchema = new mongoose.Schema({
 // Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
+  
+  // Skip password hashing for OAuth users with random passwords
+  if (this.googleId || this.githubId) {
+    return next();
+  }
   
   try {
     const salt = await bcrypt.genSalt(10);

@@ -5,13 +5,14 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import PublicRoute from './components/common/PublicRoute';
 
 // Pages
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Feed from './pages/Feed';
+import ModernLogin from './pages/ModernLogin';
+import ModernRegister from './pages/ModernRegister';
+import ModernFeed from './pages/ModernFeed';
 import CityFeed from './pages/CityFeed';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
-import Splash from './pages/Splash';
+import ModernSplash from './pages/ModernSplash';
+import OAuthCallback from './pages/OAuthCallback';
 import GetStarted from './pages/GetStarted';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -24,25 +25,25 @@ import Saved from './pages/Saved';
 
 function App() {
   return (
-    <LocationProvider>
-      <div className="min-h-screen bg-gray-900">
+            <LocationProvider>
+          <div className="min-h-screen bg-gray-900">
         <Routes>
         {/* Public Routes */}
         <Route path="/" element={
           <PublicRoute>
-            <Splash />
+            <ModernSplash />
           </PublicRoute>
         } />
         
         <Route path="/login" element={
           <PublicRoute>
-            <Login />
+            <ModernLogin />
           </PublicRoute>
         } />
         
         <Route path="/register" element={
           <PublicRoute>
-            <Register />
+            <ModernRegister />
           </PublicRoute>
         } />
         
@@ -58,12 +59,18 @@ function App() {
           </PublicRoute>
         } />
         
+        <Route path="/auth/callback" element={
+          <PublicRoute>
+            <OAuthCallback />
+          </PublicRoute>
+        } />
+        
         {/* Protected Routes */}
         
         
         <Route path="/feed" element={
           <ProtectedRoute>
-            <Feed />
+            <ModernFeed />
           </ProtectedRoute>
         } />
         

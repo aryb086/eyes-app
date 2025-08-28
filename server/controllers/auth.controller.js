@@ -3,6 +3,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
+const axios = require('axios');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -278,3 +279,180 @@ const sendTokenResponse = (user, statusCode, res) => {
 };
 
 // getSignedJwtToken method is now defined in the User model
+
+// @desc    Google OAuth authentication
+// @route   POST /api/auth/google
+// @access  Public
+exports.googleAuth = async (req, res, next) => {
+  const { code } = req.body;
+
+  if (!code) {
+    return next(new ErrorResponse('Authorization code is required', 400));
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+      client_id: '899675673892-hq5n5981vs1b14i82krmoe42j619jq17.apps.googleusercontent.com',
+      client_secret: process.env.GOOGLE_CLIENT_SECRET || 'your_google_client_secret',
+      code,
+      grant_type: 'authorization_code',
+      redirect_uri: `${req.protocol}://${req.get('host')}/auth/callback`
+    });
+
+    const { access_token } = tokenResponse.data;
+
+    if (!access_token) {
+      return next(new ErrorResponse('Failed to get access token from Google', 400));
+    }
+
+    // Get user info from Google
+    const userResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        Authorization: `Bearer ${access_token}`
+      }
+    });
+
+    const { email, name, picture, sub: googleId } = userResponse.data;
+
+    if (!email) {
+      return next(new ErrorResponse('Email is required from Google', 400));
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // User exists, generate token
+      const token = user.getSignedJwtToken();
+      user.password = undefined;
+      
+      return res.status(200).json({
+        success: true,
+        token,
+        user
+      });
+    }
+
+    // Create new user
+    const username = email.split('@')[0] + '_' + Math.random().toString(36).substr(2, 5);
+    
+    user = await User.create({
+      email,
+      username,
+      fullName: name || username,
+      password: crypto.randomBytes(32).toString('hex'), // Random password for OAuth users
+      googleId,
+      avatar: picture
+    });
+
+    // Generate token
+    const token = user.getSignedJwtToken();
+    user.password = undefined;
+
+    res.status(201).json({
+      success: true,
+      token,
+      user
+    });
+  } catch (err) {
+    console.error('Google OAuth error:', err);
+    return next(new ErrorResponse('Google authentication failed', 500));
+  }
+};
+
+// @desc    GitHub OAuth authentication
+// @route   POST /api/auth/github
+// @access  Public
+exports.githubAuth = async (req, res, next) => {
+  const { code } = req.body;
+
+  if (!code) {
+    return next(new ErrorResponse('Authorization code is required', 400));
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenResponse = await axios.post('https://github.com/login/oauth/access_token', {
+      client_id: 'Ov23liXo617YNO4flFpn', // Your GitHub client ID
+      client_secret: process.env.GITHUB_CLIENT_SECRET || 'your_github_client_secret',
+      code
+    }, {
+      headers: {
+        Accept: 'application/json'
+      }
+    });
+
+    const { access_token } = tokenResponse.data;
+
+    if (!access_token) {
+      return next(new ErrorResponse('Failed to get access token from GitHub', 400));
+    }
+
+    // Get user info from GitHub
+    const userResponse = await axios.get('https://api.github.com/user', {
+      headers: {
+        Authorization: `token ${access_token}`
+      }
+    });
+
+    const { email, name, avatar_url, id: githubId } = userResponse.data;
+
+    // Get user email if not provided in user response
+    let userEmail = email;
+    if (!userEmail) {
+      const emailsResponse = await axios.get('https://api.github.com/user/emails', {
+        headers: {
+          Authorization: `token ${access_token}`
+        }
+      });
+      const primaryEmail = emailsResponse.data.find(email => email.primary);
+      userEmail = primaryEmail ? primaryEmail.email : null;
+    }
+
+    if (!userEmail) {
+      return next(new ErrorResponse('Email is required from GitHub', 400));
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email: userEmail });
+
+    if (user) {
+      // User exists, generate token
+      const token = user.getSignedJwtToken();
+      user.password = undefined;
+      
+      return res.status(200).json({
+        success: true,
+        token,
+        user
+      });
+    }
+
+    // Create new user
+    const username = name ? name.replace(/\s+/g, '_').toLowerCase() : 
+                    userEmail.split('@')[0] + '_' + Math.random().toString(36).substr(2, 5);
+    
+    user = await User.create({
+      email: userEmail,
+      username,
+      fullName: name || username,
+      password: crypto.randomBytes(32).toString('hex'), // Random password for OAuth users
+      githubId,
+      avatar: avatar_url
+    });
+
+    // Generate token
+    const token = user.getSignedJwtToken();
+    user.password = undefined;
+
+    res.status(201).json({
+      success: true,
+      token,
+      user
+    });
+  } catch (err) {
+    console.error('GitHub OAuth error:', err);
+    return next(new ErrorResponse('GitHub authentication failed', 500));
+  }
+};
