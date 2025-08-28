@@ -119,6 +119,18 @@ userSchema.virtual('followingCount').get(function() {
   return (this.following && this.following.length) || 0;
 });
 
+// Method to get signed JWT token
+userSchema.methods.getSignedJwtToken = function() {
+  const jwt = require('jsonwebtoken');
+  return jwt.sign(
+    { id: this._id, username: this.username, role: this.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN
+    }
+  );
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
