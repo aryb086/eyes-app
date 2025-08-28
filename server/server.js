@@ -37,7 +37,8 @@ const commentRoutes = require('./routes/comment.routes');
 const app = express();
 
 // Trust proxy for Heroku deployment (fixes rate limiting issues)
-app.set('trust proxy', true);
+// Heroku uses 1 proxy, so we trust the first proxy
+app.set('trust proxy', 1);
 
 // Create HTTP server
 const server = http.createServer(app);
