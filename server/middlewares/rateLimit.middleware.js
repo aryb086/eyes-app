@@ -16,7 +16,10 @@ const apiLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   keyGenerator: (req) => {
     // Use X-Forwarded-For header for Heroku, fallback to connection IP
-    return req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded ? forwarded.split(',')[0].trim() : (req.connection.remoteAddress || req.ip);
+    // Convert IPv6 to IPv4 if possible, or use a hash for IPv6
+    return ip.includes(':') ? ip.split(':').pop() : ip;
   },
 });
 
@@ -34,7 +37,10 @@ const loginLimiter = rateLimit({
   skipSuccessfulRequests: true, // Only count failed login attempts
   keyGenerator: (req) => {
     // Use X-Forwarded-For header for Heroku, fallback to connection IP
-    return req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded ? forwarded.split(',')[0].trim() : (req.connection.remoteAddress || req.ip);
+    // Convert IPv6 to IPv4 if possible, or use a hash for IPv6
+    return ip.includes(':') ? ip.split(':').pop() : ip;
   },
 });
 
