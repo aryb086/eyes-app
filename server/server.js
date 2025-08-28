@@ -99,10 +99,10 @@ app.use(cors({
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rate limiting for API routes
-if (config.env === 'production') {
-  app.use('/api', apiLimiter);
-}
+// Rate limiting for API routes - temporarily disabled for testing
+// if (config.env === 'production') {
+//   app.use('/api', apiLimiter);
+// }
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
