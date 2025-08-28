@@ -273,4 +273,13 @@ const sendTokenResponse = (user, statusCode, res) => {
     });
 };
 
-
+// Add getSignedJwtToken method to User model
+User.prototype.getSignedJwtToken = function() {
+  return jwt.sign(
+    { id: this._id, username: this.username, role: this.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN
+    }
+  );
+};

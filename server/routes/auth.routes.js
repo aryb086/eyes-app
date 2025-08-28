@@ -23,7 +23,14 @@ router.post(
 // @route   POST /api/auth/login
 // @desc    Login user & get token
 // @access  Public
-router.post('/login', authController.login);
+router.post(
+  '/login',
+  [
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Password is required').exists()
+  ],
+  authController.login
+);
 
 // @route   GET /api/auth/me
 // @desc    Get current logged in user
