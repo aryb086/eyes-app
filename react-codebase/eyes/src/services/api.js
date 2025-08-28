@@ -5,7 +5,7 @@ import axios from 'axios';
 export const API_URL =
   process.env.REACT_APP_API_URL ||
   process.env.REACT_APP_API_BASE_URL ||
-  '/api/v1';
+  'http://localhost:3001/api/v1';
 
 // Ensure API URL ends with /v1 for production
 export const getApiUrl = () => {
