@@ -136,19 +136,19 @@ const sanitizeData = [
 ];
 
 /**
- * Rate limiting for API routes
+ * Rate limiting for API routes - temporarily disabled
  */
-const apiLimiter = rateLimit.apiLimiter;
+// const apiLimiter = rateLimit.apiLimiter;
 
 /**
- * Rate limiting for auth routes
+ * Rate limiting for auth routes - temporarily disabled
  */
-const authLimiter = rateLimit.loginLimiter;
+// const authLimiter = rateLimit.loginLimiter;
 
 module.exports = {
   setSecurityHeaders,
   preventHttpParamPollution,
   sanitizeData,
-  apiLimiter,
-  authLimiter,
+  // apiLimiter, // temporarily disabled
+  // authLimiter, // temporarily disabled
 };
