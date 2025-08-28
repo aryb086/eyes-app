@@ -81,8 +81,12 @@ exports.login = async (req, res, next) => {
     // Remove password from output
     user.password = undefined;
 
-    // Send token in HTTP-only cookie
-    sendTokenResponse(user, 200, res);
+    // Send simple response for testing
+    res.status(200).json({
+      success: true,
+      token,
+      user
+    });
   } catch (err) {
     next(err);
   }
