@@ -1,156 +1,153 @@
-import axios from 'axios';
-import { API_URL as BASE_API_URL, getApiUrl } from './api';
+import api, { ENDPOINTS } from './api';
 
-// Consolidated auth base URL
-const AUTH_URL = `${getApiUrl()}/auth`;
-
-const register = async (userData) => {
-  try {
-    console.log('Sending registration request to:', `${AUTH_URL}/register`);
-    console.log('Registration data:', JSON.stringify(userData, null, 2));
-    
-    const response = await axios.post(`${AUTH_URL}/register`, userData, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      validateStatus: function (status) {
-        return status < 500; // Reject only if status is greater than or equal to 500
+class AuthService {
+  // Login user
+  async login(email, password) {
+    try {
+      const response = await api.post(ENDPOINTS.AUTH.LOGIN, {
+        email,
+        password,
+      });
+      
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
       }
-    });
-    
-    console.log('Registration response:', response);
-    
-    if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      localStorage.setItem('token', response.data.token);
-      return response.data;
-    }
-    
-    // If we get here, there was no token in the response
-    throw new Error(response.data.message || 'Registration failed: No token received');
-  } catch (error) {
-    console.error('Registration error:', error);
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      console.error('Response data:', error.response.data);
-      console.error('Response status:', error.response.status);
-      console.error('Response headers:', error.response.headers);
-      throw new Error(error.response.data?.message || `Registration failed with status ${error.response.status}`);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received:', error.request);
-      throw new Error('No response from server. Please check your connection.');
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error('Request setup error:', error.message);
-      throw new Error(`Request failed: ${error.message}`);
+      
+      return response;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
     }
   }
-};
 
-const login = async (credentials) => {
-  try {
-    const response = await axios.post(`${AUTH_URL}/login`, credentials);
-    if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      localStorage.setItem('token', response.data.token);
+  // Register user
+  async register(userData) {
+    try {
+      const response = await api.post(ENDPOINTS.AUTH.REGISTER, userData);
+      
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
     }
-    return response.data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Login failed';
   }
-};
 
-const logout = () => {
-  localStorage.removeItem('user');
-  localStorage.removeItem('token');
-};
-
-const getCurrentUser = () => {
-  return JSON.parse(localStorage.getItem('user'));
-};
-
-const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-};
-
-/**
- * Request a password reset email
- * @param {string} email - User's email address
- * @returns {Promise<Object>} - Result of the request
- */
-const requestPasswordReset = async (email) => {
-  try {
-    // Call the backend API to handle password reset request
-    const response = await axios.post(`${AUTH_URL}/forgot-password`, { email });
-  
-    // The backend will handle sending the email
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to send password reset email');
+  // Logout user
+  async logout() {
+    try {
+      await api.post(ENDPOINTS.AUTH.LOGOUT);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      // Clear local storage regardless of API call success
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('userLocation');
     }
-    
-    return { success: true, message: 'Password reset email sent successfully' };
-  } catch (error) {
-    console.error('Error requesting password reset:', error);
-    throw new Error(error.response?.data?.message || 'Failed to send password reset email');
   }
-};
 
-/**
- * Reset a user's password using a reset token
- * @param {string} token - Password reset token
- * @param {Object} data - New password data
- * @param {string} data.password - New password
- * @returns {Promise<Object>} - Result of the password reset
- */
-const resetPassword = async (token, { password }) => {
-  try {
-    // Call the backend API to handle password reset
-    const response = await axios.post(`${AUTH_URL}/reset-password`, {
-      token,
-      password
-    });
-    
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Failed to reset password');
+  // Get current user
+  getCurrentUser() {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  }
+
+  // Check if user is authenticated
+  isAuthenticated() {
+    return !!localStorage.getItem('authToken');
+  }
+
+  // Get auth token
+  getToken() {
+    return localStorage.getItem('authToken');
+  }
+
+  // Refresh token
+  async refreshToken() {
+    try {
+      const response = await api.post(ENDPOINTS.AUTH.REFRESH);
+      
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      // If refresh fails, logout user
+      this.logout();
+      throw error;
     }
-    
-    return { success: true, message: 'Password reset successful' };
-  } catch (error) {
-    console.error('Error resetting password:', error);
-    throw new Error(error.response?.data?.message || 'Failed to reset password');
   }
-};
 
-/**
- * Validate a password reset token
- * @param {string} token - Password reset token to validate
- * @returns {Promise<Object>} - Token validation result
- */
-const validateResetToken = async (token) => {
-  try {
-    // In a real app, you would verify the token with the backend
-    // For now, just check if it exists
-    if (!token) {
-      return { valid: false, error: 'No token provided' };
+  // Google OAuth
+  async googleAuth(code) {
+    try {
+      const response = await api.post(ENDPOINTS.AUTH.GOOGLE, { code });
+      
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Google auth failed:', error);
+      throw error;
     }
-    return { valid: true };
-  } catch (error) {
-    return { valid: false, error: error.message };
   }
-};
 
-const authService = {
-  register,
-  login,
-  logout,
-  getCurrentUser,
-  getAuthHeader,
-  requestPasswordReset,
-  resetPassword,
-  validateResetToken
-};
+  // GitHub OAuth
+  async githubAuth(code) {
+    try {
+      const response = await api.post(ENDPOINTS.AUTH.GITHUB, { code });
+      
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('GitHub auth failed:', error);
+      throw error;
+    }
+  }
 
+  // Update user profile
+  async updateProfile(userData) {
+    try {
+      const response = await api.put(ENDPOINTS.USERS.UPDATE, userData);
+      
+      // Update local storage with new user data
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      throw error;
+    }
+  }
+
+  // Get user profile
+  async getProfile() {
+    try {
+      const response = await api.get(ENDPOINTS.USERS.PROFILE);
+      return response;
+    } catch (error) {
+      console.error('Get profile failed:', error);
+      throw error;
+    }
+  }
+}
+
+const authService = new AuthService();
 export default authService;

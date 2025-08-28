@@ -49,7 +49,8 @@ class WebSocketService {
       
       this.ws.onopen = () => {
         clearTimeout(connectionTimeout);
-        console.log('WebSocket connected successfully');
+        console.log('✅ WebSocket connected successfully to:', wsUrl);
+        console.log('WebSocket readyState:', this.ws.readyState);
         this.isConnected = true;
         this.connectionStatus = 'connected';
         this.reconnectAttempts = 0;

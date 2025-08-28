@@ -5,7 +5,7 @@ import { FiHome, FiCompass, FiBell, FiMessageSquare, FiBookmark, FiSettings, FiM
 import { BsLightningCharge } from 'react-icons/bs';
 import { RiCommunityLine } from 'react-icons/ri';
 import { useLocation } from '../../contexts/LocationContext';
-import { getCitiesByState } from '../../services/locationService';
+import locationService from '../../services/locationService';
 import PostCard from './components/PostCard';
 import CreatePost from './components/CreatePost';
 import styles from './styles/feed.module.css';
@@ -27,7 +27,10 @@ const Feed = ({ user, onLogout, isCityFeed = false, cityId = null }) => {
   const cityName = useMemo(() => {
     try {
       if (!stateCode || !effectiveCityId) return null;
-      const cities = getCitiesByState(stateCode) || [];
+      const cities = locationService.getCities().map(cityName => ({
+      id: cityName.toLowerCase().replace(/\s+/g, '-'),
+      name: cityName
+    }));
       const c = cities.find(ci => ci.id === effectiveCityId);
       return c?.name || null;
     } catch {

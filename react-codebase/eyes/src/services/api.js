@@ -1,53 +1,143 @@
-import axios from 'axios';
-
-// Support both env names; CRA inlines these at build time
+// API configuration for the Eyes app
 // This file handles API configuration for both development and production environments
-export const API_URL =
-  process.env.REACT_APP_API_URL ||
-  process.env.REACT_APP_API_BASE_URL ||
+
+export const API_URL = 
+  (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) ||
+  (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_BASE_URL) ||
   'https://congressional-app-backend-ff9b28494ff1.herokuapp.com/api/v1';
 
-// Ensure API URL ends with /v1 for production
-export const getApiUrl = () => {
-  const baseUrl = API_URL;
-  if (baseUrl.includes('congressional-app-backend') && !baseUrl.endsWith('/v1')) {
-    return `${baseUrl}/v1`;
-  }
-  return baseUrl;
+// API endpoints
+export const ENDPOINTS = {
+  // Auth endpoints
+  AUTH: {
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    LOGOUT: '/auth/logout',
+    REFRESH: '/auth/refresh',
+    GOOGLE: '/auth/google',
+    GITHUB: '/auth/github',
+    CALLBACK: '/auth/callback',
+  },
+  
+  // User endpoints
+  USERS: {
+    PROFILE: '/users/profile',
+    UPDATE: '/users/update',
+    LOCATION: '/users/location',
+    NEARBY: '/users/nearby',
+  },
+  
+  // Post endpoints
+  POSTS: {
+    CREATE: '/posts',
+    GET_ALL: '/posts',
+    GET_BY_ID: (id) => `/posts/${id}`,
+    UPDATE: (id) => `/posts/${id}`,
+    DELETE: (id) => `/posts/${id}`,
+    LIKE: (id) => `/posts/${id}/like`,
+    UNLIKE: (id) => `/posts/${id}/unlike`,
+    COMMENT: (id) => `/posts/${id}/comments`,
+    GET_BY_LOCATION: '/posts/location',
+    GET_BY_CITY: '/posts/city',
+    GET_BY_NEIGHBORHOOD: '/posts/neighborhood',
+  },
+  
+  // Location endpoints
+  LOCATION: {
+    CITIES: '/location/cities',
+    NEIGHBORHOODS: '/location/neighborhoods',
+    GEOCODE: '/location/geocode',
+    REVERSE_GEOCODE: '/location/reverse-geocode',
+  },
+  
+  // Health check
+  HEALTH: '/health',
 };
 
-// Create axios instance
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, // Important for sending cookies with requests
-});
+// API utility functions
+export const apiRequest = async (endpoint, options = {}) => {
+  const url = `${API_URL}${endpoint}`;
+  
+  const defaultOptions = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    credentials: 'include', // Include cookies for authentication
+  };
 
-// Request interceptor to add auth token to requests if it exists in localStorage
-api.interceptors.request.use(
-  (config) => {
-    // We don't need to manually set the token in the Authorization header
-    // as it will be sent automatically via cookies
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+  // Add auth token if available
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    defaultOptions.headers.Authorization = `Bearer ${token}`;
   }
-);
 
-// Response interceptor to handle errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle 401 Unauthorized errors (token expired, invalid token, etc.)
-    if (error.response && error.response.status === 401) {
-      // Redirect to login page
-      window.location.href = '/login';
+  try {
+    const response = await fetch(url, {
+      ...defaultOptions,
+      ...options,
+      headers: {
+        ...defaultOptions.headers,
+        ...options.headers,
+      },
+    });
+
+    // Handle different response types
+    if (response.headers.get('content-type')?.includes('application/json')) {
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      return data;
+    } else {
+      // Handle non-JSON responses
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.text();
     }
-    return Promise.reject(error);
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
   }
-);
+};
+
+// Specific API methods
+export const api = {
+  // GET request
+  get: (endpoint, options = {}) => 
+    apiRequest(endpoint, { ...options, method: 'GET' }),
+  
+  // POST request
+  post: (endpoint, data, options = {}) => 
+    apiRequest(endpoint, { 
+      ...options, 
+      method: 'POST', 
+      body: JSON.stringify(data) 
+    }),
+  
+  // PUT request
+  put: (endpoint, data, options = {}) => 
+    apiRequest(endpoint, { 
+      ...options, 
+      method: 'PUT', 
+      body: JSON.stringify(data) 
+    }),
+  
+  // DELETE request
+  delete: (endpoint, options = {}) => 
+    apiRequest(endpoint, { ...options, method: 'DELETE' }),
+  
+  // PATCH request
+  patch: (endpoint, data, options = {}) => 
+    apiRequest(endpoint, { 
+      ...options, 
+      method: 'PATCH', 
+      body: JSON.stringify(data) 
+    }),
+};
 
 export default api;

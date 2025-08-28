@@ -7,14 +7,14 @@ const ModernInput = forwardRef(({
   className = '', 
   ...props 
 }, ref) => {
-  const baseClasses = 'block w-full px-3 py-2.5 border border-gray-600 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 bg-gray-700 text-white';
-  const errorClasses = error ? 'border-red-500 focus:ring-red-500' : '';
+  const baseClasses = 'block w-full px-4 py-3 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 bg-white text-gray-900 shadow-sm';
+  const errorClasses = error ? 'border-red-400 focus:ring-red-500' : '';
   const classes = `${baseClasses} ${errorClasses} ${className}`;
   
   return (
     <div className="space-y-1">
       {label && (
-        <label className="block text-sm font-medium text-gray-200">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           {label}
         </label>
       )}
@@ -24,10 +24,10 @@ const ModernInput = forwardRef(({
         {...props}
       />
       {error && (
-        <p className="text-sm text-red-400">{error}</p>
+        <p className="text-sm text-red-500 mt-2 font-medium">{error}</p>
       )}
       {helperText && !error && (
-        <p className="text-sm text-gray-400">{helperText}</p>
+        <p className="text-sm text-gray-500 mt-2">{helperText}</p>
       )}
     </div>
   );

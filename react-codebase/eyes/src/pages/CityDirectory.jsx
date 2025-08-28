@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getStates, getCitiesByState } from '../services/locationService';
+import locationService from '../services/locationService';
 import styles from '../styles/cityDirectory.module.css';
 
 const CityDirectory = () => {
@@ -14,7 +14,13 @@ const CityDirectory = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const statesData = getStates();
+        const statesData = [
+    { code: 'WA', name: 'Washington' },
+    { code: 'CA', name: 'California' },
+    { code: 'NY', name: 'New York' },
+    { code: 'TX', name: 'Texas' },
+    { code: 'IL', name: 'Illinois' }
+  ];
         setStates(statesData);
         setIsLoading(false);
       } catch (error) {
@@ -29,7 +35,11 @@ const CityDirectory = () => {
   // Update cities when selected state changes
   useEffect(() => {
     if (selectedState) {
-      const citiesData = getCitiesByState(selectedState);
+              const citiesData = locationService.getCities().map(cityName => ({
+          id: cityName.toLowerCase().replace(/\s+/g, '-'),
+          name: cityName,
+          neighborhoods: locationService.getNeighborhoods(cityName)
+        }));
       setCities(citiesData);
     } else {
       setCities([]);

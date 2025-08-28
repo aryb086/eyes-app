@@ -12,13 +12,13 @@ const ModernButton = ({
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 shadow-sm hover:shadow-md',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500 shadow-sm hover:shadow-md',
-    outline: 'border border-gray-600 bg-gray-800 hover:bg-gray-700 text-gray-200 focus:ring-blue-500 hover:border-gray-500',
-    ghost: 'text-gray-300 hover:text-white hover:bg-gray-800 focus:ring-gray-500',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
-    success: 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
-  };
+  primary: 'bg-teal-500 hover:bg-teal-600 text-white focus:ring-teal-500 shadow-md hover:shadow-lg transition-all duration-200 font-semibold',
+  secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-900 focus:ring-gray-500 shadow-sm hover:shadow-md transition-all duration-200',
+  outline: 'border border-teal-500 bg-transparent hover:bg-teal-50 text-teal-600 focus:ring-teal-500 hover:bg-teal-100 transition-all duration-200',
+  ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-teal-500 transition-all duration-200',
+  danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500 shadow-md hover:shadow-lg transition-all duration-200',
+  success: 'bg-green-500 hover:bg-green-600 text-white focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-200'
+};
   
   const sizes = {
     sm: 'px-3 py-2 text-sm',

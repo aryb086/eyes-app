@@ -1,228 +1,374 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import ModernButton from '../components/ui/ModernButton';
-import ModernCard from '../components/ui/ModernCard';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "../components/ui/Button";
+import { Card, CardContent, CardHeader } from "../components/ui/Card";
+import { Input } from "../components/ui/NewInput";
+import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocation } from "../contexts/LocationContext";
+import { useRealtime } from "../contexts/RealtimeContext";
+import postService from "../services/postService";
+import RealtimeIndicator from "../components/RealtimeIndicator";
+import { toast } from "react-hot-toast";
 
-function ModernFeed() {
-  const { user, logout } = useAuth();
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      author: 'John Doe',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face',
-      content: 'Just discovered this amazing new coffee shop downtown! The atmosphere is perfect for getting work done.',
-      timestamp: '2 hours ago',
-      likes: 12,
-      comments: 3
-    },
-    {
-      id: 2,
-      author: 'Sarah Wilson',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face',
-      content: 'Beautiful sunset from my apartment window tonight. Sometimes the simple moments are the most precious.',
-      timestamp: '4 hours ago',
-      likes: 28,
-      comments: 7
+const ModernFeed = () => {
+  const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
+  const { userLocation } = useLocation();
+  const { isConnected, sendPost, sendLike } = useRealtime();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newPost, setNewPost] = useState({ title: "", content: "" });
+
+  // Fetch posts on component mount
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      let response;
+      
+      if (userLocation) {
+        // Get posts by user's location
+        response = await postService.getPostsByLocation({
+          city: userLocation.city,
+          neighborhood: userLocation.neighborhood,
+          limit: 20
+        });
+      } else {
+        // Get all posts if no location set
+        response = await postService.getAllPosts({ limit: 20 });
+      }
+      
+      setPosts(response.posts || response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch posts:", error);
+      toast.error("Failed to load posts");
+      // Set empty array as fallback
+      setPosts([]);
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const handleLogout = async () => {
-    await logout();
   };
 
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    if (!newPost.title.trim() || !newPost.content.trim()) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      const postData = {
+        title: newPost.title,
+        content: newPost.content,
+        city: userLocation?.city || "Unknown",
+        neighborhood: userLocation?.neighborhood || "Unknown",
+        location: {
+          type: "Point",
+          coordinates: userLocation?.coordinates || [0, 0]
+        }
+      };
+
+      // Send via WebSocket if connected, otherwise fallback to REST API
+      if (isConnected) {
+        sendPost(postData);
+        toast.success("Post sent in real-time!");
+      } else {
+        await postService.createPost(postData);
+        toast.success("Post created successfully!");
+      }
+      
+      setNewPost({ title: "", content: "" });
+      setShowCreateModal(false);
+      
+      // Refresh posts to show the new one
+      setTimeout(() => {
+        fetchPosts();
+      }, 500);
+      
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      toast.error("Failed to create post");
+    }
+  };
+
+  const handleLike = async (postId) => {
+    try {
+      // Send like via WebSocket if connected, otherwise fallback to REST API
+      if (isConnected) {
+        sendLike(postId);
+        // Optimistically update UI
+        setPosts(posts.map(post => 
+          post._id === postId 
+            ? { ...post, likes: (post.likes || 0) + 1, liked: true }
+            : post
+        ));
+      } else {
+        await postService.likePost(postId);
+        // Update local state
+        setPosts(posts.map(post => 
+          post._id === postId 
+            ? { ...post, likes: (post.likes || 0) + 1, liked: true }
+            : post
+        ));
+      }
+    } catch (error) {
+      console.error("Failed to like post:", error);
+      toast.error("Failed to like post");
+    }
+  };
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gray-800 shadow-sm border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </div>
-                  <span className="ml-2 text-xl font-bold text-white">Eyes</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <button className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5h15a2 2 0 002-2v-15a2 2 0 00-2-2h-15a2 2 0 00-2 2v15a2 2 0 002 2z" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="relative">
-                <button className="p-2 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5h15a2 2 0 002-2v-15a2 2 0 00-2-2h-15a2 2 0 00-2 2v15a2 2 0 002 2z" />
-                  </svg>
-                </button>
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-white">{user?.fullName || user?.username}</p>
-                  <p className="text-xs text-gray-400">@{user?.username}</p>
-                </div>
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src={`https://ui-avatars.com/api/?name=${user?.fullName || user?.username}&background=3b82f6&color=fff`}
-                  alt=""
-                />
-                <ModernButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </ModernButton>
-              </div>
-            </div>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mr-4"
+            onClick={toggleSidebar}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          
+          <div className="flex items-center space-x-2">
+            <Eye className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold">EYES</h1>
+          </div>
+          
+          <div className="flex-1" />
+          
+          <div className="flex items-center space-x-2">
+            <RealtimeIndicator />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Post
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/user-settings")}
+            >
+              <User className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Create Post */}
-            <ModernCard className="bg-gray-800/50 border border-gray-700">
-              <div className="flex space-x-4">
-                <img
-                  className="h-10 w-10 rounded-full"
-                  src={`https://ui-avatars.com/api/?name=${user?.fullName || user?.username}&background=3b82f6&color=fff`}
-                  alt=""
-                />
-                <div className="flex-1">
-                  <textarea
-                    className="w-full p-3 border border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
-                    rows="3"
-                    placeholder="What's happening in your city?"
-                  />
-                  <div className="flex justify-between items-center mt-3">
-                    <div className="flex space-x-4">
-                      <button className="text-gray-400 hover:text-blue-500">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                      <button className="text-gray-400 hover:text-blue-500">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                    </div>
-                    <ModernButton size="sm">Post</ModernButton>
-                  </div>
-                </div>
-              </div>
-            </ModernCard>
-
-            {/* Posts */}
-            {posts.map((post) => (
-              <ModernCard key={post.id} className="bg-gray-800/50 border border-gray-700">
-                <div className="flex space-x-4">
-                  <img
-                    className="h-10 w-10 rounded-full"
-                    src={post.avatar}
-                    alt={post.author}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-medium text-gray-900">{post.author}</h3>
-                      <span className="text-gray-500 text-sm">•</span>
-                      <span className="text-gray-500 text-sm">{post.timestamp}</span>
-                    </div>
-                    <p className="mt-2 text-gray-700">{post.content}</p>
-                    <div className="flex items-center space-x-6 mt-4">
-                      <button className="flex items-center space-x-2 text-gray-400 hover:text-red-500">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                        <span className="text-sm">{post.likes}</span>
-                      </button>
-                      <button className="flex items-center space-x-2 text-gray-400 hover:text-blue-500">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        <span className="text-sm">{post.comments}</span>
-                      </button>
-                      <button className="text-gray-400 hover:text-blue-500">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </ModernCard>
-            ))}
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-background border-r transform transition-transform duration-300 ease-in-out ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center space-x-2">
+              <Eye className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-bold">EYES</h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Trending */}
-            <ModernCard>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Trending in your area</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">#coffeeshop</span>
-                  <span className="text-xs text-gray-400">12 posts</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">#sunset</span>
-                  <span className="text-xs text-gray-400">8 posts</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">#downtown</span>
-                  <span className="text-xs text-gray-400">5 posts</span>
-                </div>
-              </div>
-            </ModernCard>
-
-            {/* Nearby Users */}
-            <ModernCard>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">People nearby</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face"
-                    alt=""
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Mike Johnson</p>
-                    <p className="text-xs text-gray-500">0.5 miles away</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face"
-                    alt=""
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Emma Davis</p>
-                    <p className="text-xs text-gray-500">1.2 miles away</p>
-                  </div>
-                </div>
-              </div>
-            </ModernCard>
+          <div className="flex-1 p-4 space-y-4">
+            <nav className="space-y-1">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/feed')}
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/city-feed')}
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                City
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/neighborhood-feed')}
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                Neighborhood
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/user-settings')}
+              >
+                <User className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </nav>
           </div>
         </div>
-      </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className="container mx-auto px-4 py-8">
+          {/* Location Info */}
+          {userLocation && (
+            <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-5 h-5 text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  Showing posts from {userLocation.neighborhood}, {userLocation.city}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Posts */}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading posts...</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <MapPin className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Be the first to share something in your area!
+              </p>
+              <Button onClick={() => setShowCreateModal(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create First Post
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {posts.map((post) => (
+                <Card key={post._id} className="w-full">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{post.author?.name || "Anonymous"}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <h4 className="text-lg font-semibold mb-2">{post.title}</h4>
+                    <p className="text-muted-foreground mb-4">{post.content}</p>
+                    
+                    {post.location && (
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-4">
+                        <MapPin className="w-4 h-4" />
+                        <span>{post.neighborhood}, {post.city}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleLike(post._id)}
+                          className="flex items-center space-x-2"
+                        >
+                          <Heart className={`w-4 h-4 ${post.liked ? 'fill-red-500 text-red-500' : ''}`} />
+                          <span>{post.likes || 0}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                          <MessageCircle className="w-4 h-4" />
+                          <span>{post.comments?.length || 0}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Share2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Create Post Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">Create New Post</h3>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreatePost} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Title</label>
+                  <Input
+                    placeholder="Post title"
+                    value={newPost.title}
+                    onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Content</label>
+                  <textarea
+                    placeholder="What's happening in your area?"
+                    value={newPost.content}
+                    onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                    className="w-full p-3 border rounded-md resize-none"
+                    rows={4}
+                    required
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    Create Post
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default ModernFeed;

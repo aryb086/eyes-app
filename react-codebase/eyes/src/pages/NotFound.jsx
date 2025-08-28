@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import CustomButton from '../components/ui/Button';
+import { Button } from "../components/ui/Button";
+import { Home, ArrowLeft } from "lucide-react";
 
 function NotFound() {
   const navigate = useNavigate();
@@ -13,15 +14,21 @@ function NotFound() {
         The page you're looking for doesn't exist or has been moved.
       </p>
       <div className="flex flex-col sm:flex-row gap-4">
-        <CustomButton 
-          text="Go to Feed"
+        <Button 
           onClick={() => navigate('/feed')}
-        />
-        <CustomButton 
-          text="Go Back"
+          className="bg-[#9fe7ff] hover:bg-[#7dd4e6] text-gray-900 font-semibold px-6 py-3 rounded-lg transition-colors"
+        >
+          <Home className="w-4 h-4 mr-2" />
+          Go to Feed
+        </Button>
+        <Button 
           onClick={() => navigate(-1)}
-          className="bg-gray-700 hover:bg-gray-600"
-        />
+          variant="outline"
+          className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white px-6 py-3 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Go Back
+        </Button>
       </div>
     </div>
   );

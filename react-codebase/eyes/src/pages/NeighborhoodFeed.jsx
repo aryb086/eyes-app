@@ -7,9 +7,10 @@ import { Eye, Menu, MapPin, User, Search, Plus, Heart, MessageCircle, Bookmark, 
 import { useAuth } from '../contexts/AuthContext';
 import locationService from '../services/locationService';
 
-const CityFeed = function() {
+const NeighborhoodFeed = function() {
   const [posts, setPosts] = useState([]);
   const [selectedCity, setSelectedCity] = useState("Seattle");
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState("Downtown");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -20,12 +21,12 @@ const CityFeed = function() {
       {
         id: 1,
         image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-        caption: "Beautiful church architecture in downtown Seattle. The Gothic revival style never gets old!",
+        caption: "Beautiful church architecture in the heart of downtown. The Gothic revival style never gets old!",
         user: {
           name: "Josigh-Let",
           avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
           username: "johndoe",
-          location: "Downtown Seattle"
+          location: "Downtown"
         },
         likes: 42,
         comments: 8,
@@ -35,37 +36,38 @@ const CityFeed = function() {
       {
         id: 2,
         image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop",
-        caption: "Sunset view from the waterfront. Perfect evening for a walk!",
+        caption: "New art installation in the downtown plaza. Love the modern vibe!",
         user: {
-          name: "Sarah Chen",
-          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
-          username: "janesmith",
-          location: "Harbor District"
+          name: "Emma Davis",
+          avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+          username: "emmadavis",
+          location: "Downtown"
         },
-        likes: 67,
-        comments: 12,
-        saved: 3,
+        likes: 34,
+        comments: 6,
+        saved: 2,
         timestamp: "4 hours ago"
       },
       {
         id: 3,
         image: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=800&h=600&fit=crop",
-        caption: "New coffee shop opened in Capitol Hill. Great atmosphere and amazing coffee!",
+        caption: "Downtown farmers market is back! Fresh produce and local crafts every Saturday.",
         user: {
-          name: "Mike Johnson",
+          name: "Alex Rivera",
           avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-          username: "mikejohnson",
-          location: "Capitol Hill"
+          username: "alexrivera",
+          location: "Downtown"
         },
-        likes: 89,
-        comments: 15,
-        saved: 7,
+        likes: 67,
+        comments: 12,
+        saved: 5,
         timestamp: "6 hours ago"
       }
     ]);
   }, []);
   
   const cities = locationService.getCities();
+  const neighborhoods = selectedCity ? locationService.getNeighborhoods(selectedCity) : [];
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const handleLogout = () => {
     logout();
@@ -191,18 +193,38 @@ const CityFeed = function() {
         <main className="flex-1 p-6">
           <div className="max-w-2xl mx-auto space-y-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">City Feed</h2>
-              <div className="relative">
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="appearance-none bg-background border border-input rounded-lg px-4 py-2 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                >
-                  {cities.map((city) => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <h2 className="text-2xl font-bold">Neighborhood Feed</h2>
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => {
+                      setSelectedCity(e.target.value);
+                      setSelectedNeighborhood("");
+                    }}
+                    className="appearance-none bg-background border border-input rounded-lg px-4 py-2 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  >
+                    {cities.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                </div>
+                {selectedCity && (
+                  <div className="relative">
+                    <select
+                      value={selectedNeighborhood}
+                      onChange={(e) => setSelectedNeighborhood(e.target.value)}
+                      className="appearance-none bg-background border border-input rounded-lg px-4 py-2 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                    >
+                      <option value="">Select Neighborhood</option>
+                      {neighborhoods.map((neighborhood) => (
+                        <option key={neighborhood} value={neighborhood}>{neighborhood}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  </div>
+                )}
               </div>
             </div>
             
@@ -287,4 +309,4 @@ const CityFeed = function() {
   );
 };
 
-export default CityFeed;
+export default NeighborhoodFeed;

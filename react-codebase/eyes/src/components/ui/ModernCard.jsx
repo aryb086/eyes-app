@@ -7,7 +7,7 @@ const ModernCard = ({
   shadow = 'sm',
   ...props 
 }) => {
-  const baseClasses = 'bg-gray-800/50 rounded-xl border border-gray-700';
+  const baseClasses = 'bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200';
   
   const paddingClasses = {
     none: '',

@@ -1,138 +1,61 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { LocationProvider } from './contexts/LocationContext';
-import ProtectedRoute from './components/common/ProtectedRoute';
-import PublicRoute from './components/common/PublicRoute';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "./components/ui/toaster";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { AuthProvider } from "./contexts/AuthContext";
+import { LocationProvider } from "./contexts/LocationContext";
+import { RealtimeProvider } from "./contexts/RealtimeContext";
 
 // Pages
-import ModernLogin from './pages/ModernLogin';
-import ModernRegister from './pages/ModernRegister';
-import ModernFeed from './pages/ModernFeed';
-import CityFeed from './pages/CityFeed';
-import Profile from './pages/Profile';
-import NotFound from './pages/NotFound';
-import ModernSplash from './pages/ModernSplash';
-import OAuthCallback from './pages/OAuthCallback';
-import GetStarted from './pages/GetStarted';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import LocationSetup from './pages/LocationSetup';
-import Settings from './pages/Settings';
-import LocationSettings from './pages/LocationSettings';
-import CityDirectory from './pages/CityDirectory';
-import Notifications from './pages/Notifications';
-import Saved from './pages/Saved';
+import ModernSplash from "./pages/ModernSplash";
+import ModernLogin from "./pages/ModernLogin";
+import ModernRegister from "./pages/ModernRegister";
+import ModernFeed from "./pages/ModernFeed";
+import CityFeed from "./pages/CityFeed";
+import NeighborhoodFeed from "./pages/NeighborhoodFeed";
+import LocationSetup from "./pages/LocationSetup";
+import ChooseNeighborhood from "./pages/ChooseNeighborhood";
+import ChooseCity from "./pages/ChooseCity";
+import UserSettings from "./pages/UserSettings";
+import OAuthCallback from "./pages/OAuthCallback";
+import NotFound from "./pages/NotFound";
 
-function App() {
+const App = () => {
   return (
-            <LocationProvider>
-          <div className="min-h-screen bg-gray-900">
-        <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={
-          <PublicRoute>
-            <ModernSplash />
-          </PublicRoute>
-        } />
-        
-        <Route path="/login" element={
-          <PublicRoute>
-            <ModernLogin />
-          </PublicRoute>
-        } />
-        
-        <Route path="/register" element={
-          <PublicRoute>
-            <ModernRegister />
-          </PublicRoute>
-        } />
-        
-        <Route path="/forgot-password" element={
-          <PublicRoute>
-            <ForgotPassword />
-          </PublicRoute>
-        } />
-        
-        <Route path="/reset-password/:token" element={
-          <PublicRoute>
-            <ResetPassword />
-          </PublicRoute>
-        } />
-        
-        <Route path="/auth/callback" element={
-          <PublicRoute>
-            <OAuthCallback />
-          </PublicRoute>
-        } />
-        
-        {/* Protected Routes */}
-        
-        
-        <Route path="/feed" element={
-          <ProtectedRoute>
-            <ModernFeed />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/profile/:userId?" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/location-setup" element={
-          <ProtectedRoute>
-            <LocationSetup />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        } />
-        
-        {/* City Feed */}
-        <Route path="/city/:cityId" element={
-          <ProtectedRoute>
-            <CityFeed />
-          </ProtectedRoute>
-        } />
-        
-        {/* Location Settings */}
-        <Route path="/settings/location" element={
-          <ProtectedRoute>
-            <LocationSettings />
-          </ProtectedRoute>
-        } />
-        
-        {/* City Directory */}
-        <Route path="/explore" element={
-          <ProtectedRoute>
-            <CityDirectory />
-          </ProtectedRoute>
-        } />
-        
-        {/* Notifications */}
-        <Route path="/notifications" element={
-          <ProtectedRoute>
-            <Notifications />
-          </ProtectedRoute>
-        } />
-
-        {/* Saved */}
-        <Route path="/saved" element={
-          <ProtectedRoute>
-            <Saved />
-          </ProtectedRoute>
-        } />
-        
-        {/* 404 Route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </div>
-  </LocationProvider>
+    <ThemeProvider defaultTheme="system" storageKey="eyes-ui-theme">
+      <TooltipProvider>
+        <AuthProvider>
+          <LocationProvider>
+            <RealtimeProvider>
+              <div className="min-h-screen bg-background">
+                <Toaster />
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<ModernSplash />} />
+                  <Route path="/login" element={<ModernLogin />} />
+                  <Route path="/register" element={<ModernRegister />} />
+                  <Route path="/auth/callback" element={<OAuthCallback />} />
+                  
+                  {/* Protected Routes */}
+                  <Route path="/feed" element={<ModernFeed />} />
+                  <Route path="/city-feed" element={<CityFeed />} />
+                  <Route path="/neighborhood-feed" element={<NeighborhoodFeed />} />
+                  <Route path="/location-setup" element={<LocationSetup />} />
+                  <Route path="/choose-neighborhood" element={<ChooseNeighborhood />} />
+                  <Route path="/choose-city" element={<ChooseCity />} />
+                  <Route path="/user-settings" element={<UserSettings />} />
+                  
+                  {/* Catch-all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </RealtimeProvider>
+          </LocationProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;

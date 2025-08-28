@@ -1,11 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { 
-  getStates, 
-  getCitiesByState, 
-  getNeighborhoods,
-  getUserLocation,
-  saveUserLocation as saveLocation
-} from '../services/locationService';
+import locationService from '../services/locationService';
 
 const LocationContext = createContext();
 
@@ -23,23 +17,33 @@ export const LocationProvider = ({ children }) => {
     const loadInitialData = async () => {
       try {
         // Load states
-        const statesData = getStates();
+        const statesData = [
+          { code: 'WA', name: 'Washington' },
+          { code: 'CA', name: 'California' },
+          { code: 'NY', name: 'New York' },
+          { code: 'TX', name: 'Texas' },
+          { code: 'IL', name: 'Illinois' }
+        ];
         setStates(statesData);
         
         // Load user's saved location or use default
-        const userLocation = getUserLocation();
+        const userLocation = localStorage.getItem('userLocation') ? 
+          JSON.parse(localStorage.getItem('userLocation')) : 
+          { stateCode: 'WA', cityId: 'seattle' };
         setStateCode(userLocation.stateCode);
         
         // Load cities for the user's state
-        const citiesData = getCitiesByState(userLocation.stateCode);
+        const citiesData = locationService.getCities().map(cityName => ({
+          id: cityName.toLowerCase().replace(/\s+/g, '-'),
+          name: cityName
+        }));
         setCities(citiesData);
         
         // Set city and load neighborhoods
         if (userLocation.cityId) {
           setCityId(userLocation.cityId);
-          const neighborhoodsData = getNeighborhoods(
-            userLocation.stateCode, 
-            userLocation.cityId
+          const neighborhoodsData = locationService.getNeighborhoods(
+            userLocation.cityId === 'seattle' ? 'Seattle' : 'Seattle'
           );
           setNeighborhoods(neighborhoodsData);
           
@@ -61,7 +65,10 @@ export const LocationProvider = ({ children }) => {
   // Update cities when state changes
   const handleStateChange = (newStateCode) => {
     setStateCode(newStateCode);
-    const newCities = getCitiesByState(newStateCode);
+    const newCities = locationService.getCities().map(cityName => ({
+      id: cityName.toLowerCase().replace(/\s+/g, '-'),
+      name: cityName
+    }));
     setCities(newCities);
     
     // Reset city and neighborhood when state changes
@@ -73,7 +80,8 @@ export const LocationProvider = ({ children }) => {
   // Update neighborhoods when city changes
   const handleCityChange = (newCityId) => {
     setCityId(newCityId);
-    const newNeighborhoods = getNeighborhoods(stateCode, newCityId);
+    const cityName = cities.find(c => c.id === newCityId)?.name || 'Seattle';
+    const newNeighborhoods = locationService.getNeighborhoods(cityName);
     setNeighborhoods(newNeighborhoods);
     
     // Reset neighborhood when city changes
@@ -87,7 +95,7 @@ export const LocationProvider = ({ children }) => {
       if (neighborhood) {
         location.neighborhood = neighborhood;
       }
-      saveLocation(location);
+      localStorage.setItem('userLocation', JSON.stringify(location));
       return true;
     }
     return false;

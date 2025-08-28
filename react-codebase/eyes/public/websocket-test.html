@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .connecting { background-color: #fff3cd; color: #856404; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    
+    <div class="info">
+        <h3>Environment Detection</h3>
+        <p><strong>Current Hostname:</strong> <span id="hostname"></span></p>
+        <p><strong>Is Localhost:</strong> <span id="isLocalhost"></span></p>
+        <p><strong>WebSocket URL:</strong> <span id="wsUrl"></span></p>
+    </div>
+    
+    <div id="status" class="status disconnected">Disconnected</div>
+    
+    <div>
+        <button id="connectBtn" onclick="connect()">Connect</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+        <button id="testBtn" onclick="testConnection()" disabled>Test Message</button>
+    </div>
+    
+    <div>
+        <h3>Connection Log</h3>
+        <div id="log" class="log"></div>
+    </div>
+    
+    <script>
+        let ws = null;
+        let isConnected = false;
+        
+        // Detect environment and determine WebSocket URL
+        function detectEnvironment() {
+            const hostname = window.location.hostname;
+            const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+            let wsUrl;
+            
+            if (isLocalhost) {
+                wsUrl = 'ws://localhost:3001';
+            } else {
+                wsUrl = 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
+            }
+            
+            // Update UI
+            document.getElementById('hostname').textContent = hostname;
+            document.getElementById('isLocalhost').textContent = isLocalhost ? 'Yes' : 'No';
+            document.getElementById('wsUrl').textContent = wsUrl;
+            
+            log(`Environment detected: ${hostname} (${isLocalhost ? 'Development' : 'Production'})`);
+            log(`WebSocket URL: ${wsUrl}`);
+            
+            return wsUrl;
+        }
+        
+        function updateStatus(status, message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = message;
+            
+            // Update button states
+            document.getElementById('connectBtn').disabled = isConnected;
+            document.getElementById('disconnectBtn').disabled = !isConnected;
+            document.getElementById('testBtn').disabled = !isConnected;
+        }
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function connect() {
+            const wsUrl = detectEnvironment();
+            
+            try {
+                log(`Attempting to connect to: ${wsUrl}`);
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function() {
+                    isConnected = true;
+                    updateStatus('connected', 'Connected to WebSocket server');
+                    log('✅ WebSocket connection established');
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        log(`📨 Received: ${data.type} - ${JSON.stringify(data.data)}`);
+                    } catch (error) {
+                        log(`❌ Error parsing message: ${error.message}`);
+                    }
+                };
+                
+                ws.onclose = function(event) {
+                    isConnected = false;
+                    updateStatus('disconnected', `Disconnected (Code: ${event.code})`);
+                    log(`❌ WebSocket connection closed: ${event.code} - ${event.reason}`);
+                };
+                
+                ws.onerror = function(error) {
+                    isConnected = false;
+                    updateStatus('error', 'Connection error');
+                    log(`❌ WebSocket error: ${error.message}`);
+                };
+                
+            } catch (error) {
+                log(`❌ Failed to create WebSocket: ${error.message}`);
+                updateStatus('error', 'Failed to create connection');
+            }
+        }
+        
+        function disconnect() {
+            if (ws) {
+                ws.close(1000, 'Client disconnecting');
+                ws = null;
+                isConnected = false;
+                updateStatus('disconnected', 'Disconnected');
+                log('🔌 WebSocket connection closed by client');
+            }
+        }
+        
+        function testConnection() {
+            if (ws && isConnected) {
+                const message = {
+                    type: 'ping',
+                    data: { message: 'Hello from production test client!' }
+                };
+                ws.send(JSON.stringify(message));
+                log(`📤 Sent: ${message.type} - ${JSON.stringify(message.data)}`);
+            }
+        }
+        
+        // Auto-detect environment on page load
+        window.onload = function() {
+            log('🚀 WebSocket test page loaded');
+            detectEnvironment();
+            log('Click "Connect" to establish WebSocket connection');
+        };
+    </script>
+</body>
+</html>
