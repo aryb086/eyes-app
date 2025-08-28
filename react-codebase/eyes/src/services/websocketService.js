@@ -24,14 +24,20 @@ class WebSocketService {
       // Production environment - use secure WebSocket
       wsUrl = 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
     }
+    
+    console.log('WebSocket URL determined:', {
+      hostname: window.location.hostname,
+      isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+      wsUrl: wsUrl
+    });
     try {
       this.connectionStatus = 'connecting';
       this.emit('statusChanged', this.connectionStatus);
       
-      console.log(`Attempting to connect to WebSocket server: ${url}`);
+      console.log(`Attempting to connect to WebSocket server: ${wsUrl}`);
       
       // Try WebSocket connection
-      this.ws = new WebSocket(url);
+      this.ws = new WebSocket(wsUrl);
       
       // Set connection timeout
       const connectionTimeout = setTimeout(() => {
