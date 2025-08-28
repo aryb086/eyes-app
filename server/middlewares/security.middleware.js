@@ -2,7 +2,7 @@ const helmet = require('helmet');
 const hpp = require('hpp');
 const xss = require('xss-clean');
 const mongoSanitize = require('express-mongo-sanitize');
-const rateLimit = require('./rateLimit.middleware');
+// const rateLimit = require('./rateLimit.middleware'); // temporarily disabled
 const config = require('../config/config');
 
 /**
