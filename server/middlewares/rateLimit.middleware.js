@@ -14,6 +14,10 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req) => {
+    // Use X-Forwarded-For header for Heroku, fallback to connection IP
+    return req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+  },
 });
 
 /**
@@ -28,6 +32,10 @@ const loginLimiter = rateLimit({
     throw new ErrorResponse(options.message, 429);
   },
   skipSuccessfulRequests: true, // Only count failed login attempts
+  keyGenerator: (req) => {
+    // Use X-Forwarded-For header for Heroku, fallback to connection IP
+    return req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip;
+  },
 });
 
 /**
