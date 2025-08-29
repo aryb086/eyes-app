@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { oauthConfig } from '../config/oauth';
 
-const API_BASE_URL = 'https://congressional-app-backend-ff9b28494ff1.herokuapp.com/api/v1';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
 
 export const oauthService = {
   // Google OAuth

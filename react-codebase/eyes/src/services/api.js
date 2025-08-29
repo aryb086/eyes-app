@@ -2,9 +2,8 @@
 // This file handles API configuration for both development and production environments
 
 export const API_URL = 
-  (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) ||
   (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_BASE_URL) ||
-  'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
+  'http://localhost:5000/api';
 
 // API endpoints
 export const ENDPOINTS = {

@@ -21,8 +21,8 @@ class WebSocketService {
       // Development environment
       wsUrl = 'ws://localhost:3001';
     } else {
-      // Production environment - use secure WebSocket
-      wsUrl = 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
+      // Production environment - use environment variable
+      wsUrl = process.env.REACT_APP_WEBSOCKET_URL || 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
     }
     
     console.log('WebSocket URL determined:', {
