@@ -3,13 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../components/ui/Card";
 import { Input } from "../components/ui/NewInput";
-import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
+import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical, Filter, Image as ImageIcon } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation } from "../contexts/LocationContext";
 import { useRealtime } from "../contexts/RealtimeContext";
 import postService from "../services/postService";
 import RealtimeIndicator from "../components/RealtimeIndicator";
 import { toast } from "react-hot-toast";
+
+// Post categories
+const POST_CATEGORIES = [
+  { id: 'crime', label: 'Crime', color: 'bg-red-100 text-red-800' },
+  { id: 'infrastructure', label: 'Infrastructure', color: 'bg-blue-100 text-blue-800' },
+  { id: 'event', label: 'Event', color: 'bg-green-100 text-green-800' },
+  { id: 'general', label: 'General', color: 'bg-gray-100 text-gray-800' }
+];
 
 const ModernFeed = () => {
   const navigate = useNavigate();
@@ -20,12 +28,19 @@ const ModernFeed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newPost, setNewPost] = useState({ title: "", content: "" });
+  const [newPost, setNewPost] = useState({ 
+    title: "", 
+    content: "", 
+    category: "general",
+    image: null 
+  });
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Fetch posts on component mount
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [selectedCategory]);
 
   const fetchPosts = async () => {
     try {
@@ -37,28 +52,59 @@ const ModernFeed = () => {
         response = await postService.getPostsByLocation({
           city: userLocation.city,
           neighborhood: userLocation.neighborhood,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
           limit: 20
         });
       } else {
         // Get all posts if no location set
-        response = await postService.getAllPosts({ limit: 20 });
+        response = await postService.getAllPosts({ 
+          limit: 20,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined
+        });
       }
       
-      setPosts(response.posts || response.data || []);
+      // Handle different response structures
+      const postsData = response.posts || response.data || [];
+      setPosts(postsData);
+      console.log('Posts fetched:', postsData);
     } catch (error) {
       console.error("Failed to fetch posts:", error);
       toast.error("Failed to load posts");
-      // Set empty array as fallback
       setPosts([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
+      
+      setNewPost({ ...newPost, image: file });
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreatePost = async (e) => {
     e.preventDefault();
+    
+    // Validate required fields
     if (!newPost.title.trim() || !newPost.content.trim()) {
       toast.error("Please fill in all fields");
+      return;
+    }
+
+    // Validate location is required
+    if (!userLocation?.city || !userLocation?.neighborhood) {
+      toast.error("Please set your location before posting");
       return;
     }
 
@@ -66,24 +112,45 @@ const ModernFeed = () => {
       const postData = {
         title: newPost.title,
         content: newPost.content,
-        city: userLocation?.city || "Unknown",
-        neighborhood: userLocation?.neighborhood || "Unknown",
+        category: newPost.category,
+        city: userLocation.city,
+        neighborhood: userLocation.neighborhood,
         location: {
           type: "Point",
-          coordinates: userLocation?.coordinates || [0, 0]
+          coordinates: userLocation.coordinates || [0, 0]
         }
       };
 
-      // Send via WebSocket if connected, otherwise fallback to REST API
-      if (isConnected) {
-        sendPost(postData);
-        toast.success("Post sent in real-time!");
+      // Handle image upload if present
+      if (newPost.image) {
+        const formData = new FormData();
+        formData.append('image', newPost.image);
+        Object.keys(postData).forEach(key => {
+          formData.append(key, typeof postData[key] === 'object' ? JSON.stringify(postData[key]) : postData[key]);
+        });
+        
+        // Send via WebSocket if connected, otherwise fallback to REST API
+        if (isConnected) {
+          sendPost(postData);
+          toast.success("Post sent in real-time!");
+        } else {
+          await postService.createPost(formData);
+          toast.success("Post created successfully!");
+        }
       } else {
-        await postService.createPost(postData);
-        toast.success("Post created successfully!");
+        // Send via WebSocket if connected, otherwise fallback to REST API
+        if (isConnected) {
+          sendPost(postData);
+          toast.success("Post sent in real-time!");
+        } else {
+          await postService.createPost(postData);
+          toast.success("Post created successfully!");
+        }
       }
       
-      setNewPost({ title: "", content: "" });
+      // Reset form
+      setNewPost({ title: "", content: "", category: "general", image: null });
+      setImagePreview(null);
       setShowCreateModal(false);
       
       // Refresh posts to show the new one
@@ -99,257 +166,279 @@ const ModernFeed = () => {
 
   const handleLike = async (postId) => {
     try {
-      // Send like via WebSocket if connected, otherwise fallback to REST API
       if (isConnected) {
         sendLike(postId);
-        // Optimistically update UI
-        setPosts(posts.map(post => 
-          post._id === postId 
-            ? { ...post, likes: (post.likes || 0) + 1, liked: true }
-            : post
-        ));
       } else {
         await postService.likePost(postId);
-        // Update local state
-        setPosts(posts.map(post => 
-          post._id === postId 
-            ? { ...post, likes: (post.likes || 0) + 1, liked: true }
-            : post
-        ));
       }
+      
+      // Optimistically update UI
+      setPosts(posts.map(post => 
+        post._id === postId 
+          ? { ...post, likes: (post.likes || 0) + 1, isLiked: true }
+          : post
+      ));
     } catch (error) {
       console.error("Failed to like post:", error);
       toast.error("Failed to like post");
     }
   };
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const filteredPosts = selectedCategory === 'all' 
+    ? posts 
+    : posts.filter(post => post.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="mr-4"
-            onClick={toggleSidebar}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          <div className="flex items-center space-x-2">
-            <Eye className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">EYES</h1>
-          </div>
-          
-          <div className="flex-1" />
-          
-          <div className="flex items-center space-x-2">
-            <RealtimeIndicator />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCreateModal(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Post
-            </Button>
-            
+      <header className="bg-card border-b border-border sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => navigate("/user-settings")}
+              size="sm"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden"
             >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center space-x-2">
+              <Eye className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-bold">EYES</h1>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <RealtimeIndicator />
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">New Post</span>
+            </Button>
+            <Button variant="ghost" size="sm">
               <User className="h-5 w-5" />
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-background border-r transform transition-transform duration-300 ease-in-out ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center space-x-2">
-              <Eye className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">EYES</h1>
-            </div>
+      {/* Category Filter */}
+      <div className="bg-card border-b border-border">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center space-x-2 overflow-x-auto">
+            <span className="text-sm font-medium text-muted-foreground">Filter:</span>
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
+              variant={selectedCategory === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory('all')}
             >
-              <Menu className="h-5 w-5" />
+              All
             </Button>
-          </div>
-
-          <div className="flex-1 p-4 space-y-4">
-            <nav className="space-y-1">
+            {POST_CATEGORIES.map(category => (
               <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate('/feed')}
+                key={category.id}
+                variant={selectedCategory === category.id ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory(category.id)}
+                className={selectedCategory === category.id ? category.color : ''}
               >
-                <MapPin className="h-4 w-4 mr-2" />
-                Home
+                {category.label}
               </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate('/city-feed')}
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                City
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate('/neighborhood-feed')}
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                Neighborhood
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate('/user-settings')}
-              >
-                <User className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-            </nav>
+            ))}
           </div>
         </div>
-      </aside>
+      </div>
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="container mx-auto px-4 py-8">
-          {/* Location Info */}
-          {userLocation && (
-            <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  Showing posts from {userLocation.neighborhood}, {userLocation.city}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Posts */}
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading posts...</p>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-12">
-              <MapPin className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Be the first to share something in your area!
-              </p>
-              <Button onClick={() => setShowCreateModal(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create First Post
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {posts.map((post) => (
-                <Card key={post._id} className="w-full">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{post.author?.name || "Anonymous"}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(post.createdAt).toLocaleDateString()}
-                          </p>
+      <div className="container mx-auto px-4 py-6">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading posts...</p>
+          </div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="text-center py-12">
+            <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
+            <p className="text-muted-foreground mb-6">
+              Be the first to share something in your area!
+            </p>
+            <Button onClick={() => setShowCreateModal(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create First Post
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {filteredPosts.map((post) => (
+              <Card key={post._id} className="overflow-hidden">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Anonymous User</p>
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span>{post.neighborhood}, {post.city}</span>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        POST_CATEGORIES.find(c => c.id === post.category)?.color || 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {POST_CATEGORIES.find(c => c.id === post.category)?.label || 'General'}
+                      </span>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
                       </Button>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <h4 className="text-lg font-semibold mb-2">{post.title}</h4>
-                    <p className="text-muted-foreground mb-4">{post.content}</p>
-                    
-                    {post.location && (
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-4">
-                        <MapPin className="w-4 h-4" />
-                        <span>{post.neighborhood}, {post.city}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLike(post._id)}
-                          className="flex items-center space-x-2"
-                        >
-                          <Heart className={`w-4 h-4 ${post.liked ? 'fill-red-500 text-red-500' : ''}`} />
-                          <span>{post.likes || 0}</span>
-                        </Button>
-                        <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                          <MessageCircle className="w-4 h-4" />
-                          <span>{post.comments?.length || 0}</span>
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Share2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
+                    <p className="text-muted-foreground">{post.content}</p>
+                  </div>
+                  
+                  {post.image && (
+                    <div className="rounded-lg overflow-hidden">
+                      <img 
+                        src={post.image} 
+                        alt="Post image" 
+                        className="w-full h-64 object-cover"
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                  )}
+                  
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    <div className="flex items-center space-x-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLike(post._id)}
+                        className="flex items-center space-x-2"
+                      >
+                        <Heart className={`h-4 w-4 ${post.isLiked ? 'text-red-500 fill-current' : ''}`} />
+                        <span>{post.likes || 0}</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                        <MessageCircle className="h-4 w-4" />
+                        <span>{post.comments?.length || 0}</span>
+                      </Button>
+                    </div>
+                    <Button variant="ghost" size="sm">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Create Post Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <h3 className="text-lg font-semibold">Create New Post</h3>
-            </CardHeader>
-            <CardContent>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Create New Post</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  ×
+                </Button>
+              </div>
+              
               <form onSubmit={handleCreatePost} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Title</label>
+                  <label className="block text-sm font-medium mb-2">Title *</label>
                   <Input
-                    placeholder="Post title"
                     value={newPost.title}
-                    onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                    onChange={(e) => setNewPost({...newPost, title: e.target.value})}
+                    placeholder="Post title"
                     required
                   />
                 </div>
+                
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Content</label>
+                  <label className="block text-sm font-medium mb-2">Content *</label>
                   <textarea
-                    placeholder="What's happening in your area?"
                     value={newPost.content}
-                    onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                    className="w-full p-3 border rounded-md resize-none"
-                    rows={4}
+                    onChange={(e) => setNewPost({...newPost, content: e.target.value})}
+                    placeholder="What's happening in your area?"
+                    className="w-full h-24 px-3 py-2 border border-input rounded-md bg-background resize-none"
                     required
                   />
                 </div>
-                <div className="flex space-x-2">
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <select
+                    value={newPost.category}
+                    onChange={(e) => setNewPost({...newPost, category: e.target.value})}
+                    className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                  >
+                    {POST_CATEGORIES.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Image (Optional)</label>
+                  <div className="border-2 border-dashed border-input rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      {imagePreview ? (
+                        <div>
+                          <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded mb-2" />
+                          <p className="text-sm text-muted-foreground">Click to change image</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <ImageIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">Click to upload image</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </div>
+                
+                {userLocation ? (
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 inline mr-1" />
+                      Posting from: {userLocation.neighborhood}, {userLocation.city}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      Please set your location before posting
+                    </p>
+                  </div>
+                )}
+                
+                <div className="flex space-x-3">
                   <Button
                     type="button"
                     variant="outline"
@@ -358,13 +447,17 @@ const ModernFeed = () => {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="flex-1">
+                  <Button
+                    type="submit"
+                    disabled={!userLocation?.city || !userLocation?.neighborhood}
+                    className="flex-1"
+                  >
                     Create Post
                   </Button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
     </div>

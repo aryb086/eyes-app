@@ -1,243 +1,176 @@
-// Real city and neighborhood data
-const cityData = {
-  'Seattle': {
-    neighborhoods: [
-      'Downtown', 'Belltown', 'South Lake Union', 'Capitol Hill', 'First Hill',
-      'Central District', 'Madison Valley', 'Madison Park', 'Leschi', 'Mount Baker',
-      'Columbia City', 'Rainier Valley', 'Beacon Hill', 'Georgetown', 'South Park',
-      'West Seattle', 'Alki', 'Admiral District', 'Highland Park', 'Delridge',
-      'Northgate', 'Lake City', 'Wedgwood', 'Ravenna', 'Green Lake',
-      'Fremont', 'Wallingford', 'Greenwood', 'Phinney Ridge', 'Ballard',
-      'Magnolia', 'Queen Anne', 'Interbay', 'Belltown', 'Denny Triangle'
-    ],
-    state: 'WA',
-    coordinates: { lat: 47.6062, lng: -122.3321 }
-  },
-  'San Francisco': {
-    neighborhoods: [
-      'Financial District', 'North Beach', 'Chinatown', 'Nob Hill', 'Russian Hill',
-      'Telegraph Hill', 'Fisherman\'s Wharf', 'Marina District', 'Pacific Heights',
-      'Cow Hollow', 'Presidio Heights', 'Laurel Heights', 'Richmond District',
-      'Sunset District', 'Golden Gate Park', 'Haight-Ashbury', 'Cole Valley',
-      'Glen Park', 'Noe Valley', 'Mission District', 'Potrero Hill',
-      'Dogpatch', 'Bayview', 'Hunters Point', 'Visitacion Valley', 'Excelsior',
-      'Outer Mission', 'Bernal Heights', 'Portola', 'Silver Terrace', 'Crocker Amazon'
-    ],
-    state: 'CA',
-    coordinates: { lat: 37.7749, lng: -122.4194 }
-  },
-  'New York': {
-    neighborhoods: [
-      'Financial District', 'Battery Park City', 'Tribeca', 'SoHo', 'Nolita',
-      'Little Italy', 'Chinatown', 'Lower East Side', 'East Village', 'Greenwich Village',
-      'West Village', 'Chelsea', 'Flatiron District', 'Gramercy Park', 'Murray Hill',
-      'Kips Bay', 'Turtle Bay', 'Midtown East', 'Midtown West', 'Hell\'s Kitchen',
-      'Upper East Side', 'Upper West Side', 'Morningside Heights', 'Harlem', 'East Harlem',
-      'Washington Heights', 'Inwood', 'Marble Hill', 'Williamsburg', 'Greenpoint',
-      'Bushwick', 'Bedford-Stuyvesant', 'Crown Heights', 'Prospect Heights', 'Park Slope',
-      'Gowanus', 'Carroll Gardens', 'Cobble Hill', 'Boerum Hill', 'Red Hook',
-      'Sunset Park', 'Bay Ridge', 'Dyker Heights', 'Bensonhurst', 'Gravesend',
-      'Sheepshead Bay', 'Brighton Beach', 'Coney Island', 'Flatbush', 'Midwood',
-      'Kensington', 'Ditmas Park', 'Borough Park', 'Kings Highway', 'Flatlands',
-      'Canarsie', 'East New York', 'Brownsville', 'Astoria', 'Long Island City',
-      'Sunnyside', 'Woodside', 'Jackson Heights', 'Elmhurst', 'Corona',
-      'Flushing', 'College Point', 'Whitestone', 'Bayside', 'Douglaston',
-      'Little Neck', 'Glen Oaks', 'Bellerose', 'Queens Village', 'Hollis',
-      'Jamaica', 'St. Albans', 'Laurelton', 'Rosedale', 'Springfield Gardens',
-      'Cambria Heights', 'Briarwood', 'Kew Gardens', 'Forest Hills', 'Rego Park',
-      'Middle Village', 'Maspeth', 'Ridgewood', 'Riverdale', 'Spuyten Duyvil',
-      'Kingsbridge', 'Marble Hill', 'Inwood', 'Washington Heights', 'University Heights',
-      'Morris Heights', 'Highbridge', 'Concourse', 'Mount Eden', 'Mount Hope',
-      'Crotona Park', 'Tremont', 'Belmont', 'Fordham', 'St. George', 'Tompkinsville',
-      'Stapleton', 'Clifton', 'Rosebank', 'Fort Wadsworth', 'New Dorp',
-      'Midland Beach', 'Great Kills', 'Eltingville', 'Annadale', 'Huguenot',
-      'Prince\'s Bay', 'Tottenville', 'Richmond Valley'
-    ],
-    state: 'NY',
-    coordinates: { lat: 40.7128, lng: -74.0060 }
-  },
-  'Los Angeles': {
-    neighborhoods: [
-      'Downtown LA', 'Echo Park', 'Silver Lake', 'Los Feliz', 'Hollywood',
-      'West Hollywood', 'Beverly Hills', 'Bel Air', 'Brentwood', 'Westwood',
-      'Culver City', 'Marina del Rey', 'Venice', 'Santa Monica', 'Pacific Palisades',
-      'Malibu', 'Topanga', 'Calabasas', 'Woodland Hills', 'Encino',
-      'Sherman Oaks', 'Studio City', 'North Hollywood', 'Toluca Lake', 'Burbank',
-      'Glendale', 'Pasadena', 'Eagle Rock', 'Highland Park', 'Mount Washington',
-      'Elysian Valley', 'Lincoln Heights', 'Boyle Heights', 'East LA', 'Montebello',
-      'Whittier', 'Downey', 'Norwalk', 'Cerritos', 'Artesia', 'Long Beach'
-    ],
-    state: 'CA',
-    coordinates: { lat: 34.0522, lng: -118.2437 }
-  },
-  'Chicago': {
-    neighborhoods: [
-      'Loop', 'River North', 'Streeterville', 'Gold Coast', 'Old Town',
-      'Lincoln Park', 'Lakeview', 'Wrigleyville', 'Boystown', 'Uptown',
-      'Edgewater', 'Rogers Park', 'West Ridge', 'Lincoln Square', 'North Center',
-      'Avondale', 'Logan Square', 'Humboldt Park', 'West Town', 'Ukrainian Village',
-      'Wicker Park', 'Bucktown', 'Noble Square', 'East Village', 'West Loop',
-      'Fulton Market', 'Near West Side', 'University Village', 'Pilsen', 'Bridgeport',
-      'Chinatown', 'Bronzeville', 'Hyde Park', 'Kenwood', 'Woodlawn', 'South Shore'
-    ],
-    state: 'IL',
-    coordinates: { lat: 41.8781, lng: -87.6298 }
-  },
-  'Austin': {
-    neighborhoods: [
-      'Downtown', 'East Austin', 'West Campus', 'North Campus', 'Hyde Park',
-      'Rosedale', 'Allandale', 'Crestview', 'Brentwood', 'Highland',
-      'North Loop', 'Windsor Park', 'Mueller', 'Hancock', 'St. Johns',
-      'Windsor Hills', 'Rundberg', 'Riverside', 'Montopolis', 'Pleasant Valley',
-      'Travis Heights', 'Bouldin Creek', 'Zilker', 'Barton Hills', 'South Lamar',
-      'South Austin', 'Circle C', 'Oak Hill', 'Westlake', 'Lake Travis'
-    ],
-    state: 'TX',
-    coordinates: { lat: 30.2672, lng: -97.7431 }
-  }
-};
+import api, { ENDPOINTS } from './api';
 
-// Geocoding service using OpenStreetMap Nominatim API
 class LocationService {
-  constructor() {
-    this.cityData = cityData;
-  }
-
-  // Get all available cities
-  getCities() {
-    return Object.keys(this.cityData);
-  }
-
-  // Get neighborhoods for a specific city
-  getNeighborhoods(city) {
-    const cityInfo = this.cityData[city];
-    if (!cityInfo) return [];
-    
-    // Handle nested neighborhood structure (like NYC)
-    if (Array.isArray(cityInfo.neighborhoods)) {
-      return cityInfo.neighborhoods;
-    } else if (typeof cityInfo.neighborhoods === 'object') {
-      // Flatten nested neighborhoods (e.g., Manhattan, Brooklyn, etc.)
-      return Object.values(cityInfo.neighborhoods).flat();
-    }
-    
-    return [];
-  }
-
-  // Get city info including state and coordinates
-  getCityInfo(city) {
-    return this.cityData[city] || null;
-  }
-
-  // Geocode address to get coordinates and location info
+  // Geocode an address to get coordinates and location data
   async geocodeAddress(address) {
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&addressdetails=1&limit=1`
-      );
-      
-      if (!response.ok) {
-        throw new Error('Geocoding request failed');
-      }
-
-      const data = await response.json();
-      
-      if (data.length === 0) {
-        throw new Error('Address not found');
-      }
-
-      const result = data[0];
-      const addressParts = result.address;
-      
-      // Extract city and neighborhood information
-      const city = addressParts.city || addressParts.town || addressParts.village || addressParts.county;
-      const neighborhood = addressParts.suburb || addressParts.neighbourhood || addressParts.district;
-      const state = addressParts.state;
-      const country = addressParts.country;
-      
-      return {
-        coordinates: {
-          lat: parseFloat(result.lat),
-          lng: parseFloat(result.lon)
-        },
-        city,
-        neighborhood,
-        state,
-        country,
-        fullAddress: result.display_name,
-        confidence: result.importance
-      };
+      const response = await api.post(ENDPOINTS.LOCATION.GEOCODE, { address });
+      return response;
     } catch (error) {
-      console.error('Geocoding error:', error);
+      console.error('Geocoding failed:', error);
       throw error;
     }
   }
 
-  // Reverse geocode coordinates to get address
+  // Reverse geocode coordinates to get address and location data
   async reverseGeocode(lat, lng) {
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
-      );
-      
-      if (!response.ok) {
-        throw new Error('Reverse geocoding request failed');
-      }
-
-      const result = await response.json();
-      const addressParts = result.address;
-      
-      return {
-        city: addressParts.city || addressParts.town || addressParts.village || addressParts.county,
-        neighborhood: addressParts.suburb || addressParts.neighbourhood || addressParts.district,
-        state: addressParts.state,
-        country: addressParts.country,
-        fullAddress: result.display_name
-      };
+      const response = await api.post(ENDPOINTS.LOCATION.REVERSE_GEOCODE, { lat, lng });
+      return response;
     } catch (error) {
-      console.error('Reverse geocoding error:', error);
+      console.error('Reverse geocoding failed:', error);
       throw error;
     }
   }
 
-  // Find nearest city and neighborhood based on coordinates
-  findNearestLocation(lat, lng) {
-    let nearestCity = null;
-    let nearestDistance = Infinity;
-    
-    for (const [cityName, cityInfo] of Object.entries(this.cityData)) {
-      const cityLat = cityInfo.coordinates.lat;
-      const cityLng = cityInfo.coordinates.lng;
+  // Get or create city from address
+  async getOrCreateCity(address) {
+    try {
+      // First try to geocode the address
+      const geocodeResult = await this.geocodeAddress(address);
       
-      const distance = this.calculateDistance(lat, lng, cityLat, cityLng);
-      
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestCity = cityName;
+      if (geocodeResult.city) {
+        // Check if city exists in our system
+        const cityResponse = await api.get(`${ENDPOINTS.LOCATION.CITIES}?name=${encodeURIComponent(geocodeResult.city)}`);
+        
+        if (cityResponse.cities && cityResponse.cities.length > 0) {
+          return cityResponse.cities[0];
+        } else {
+          // Create new city if it doesn't exist
+          const newCity = await api.post(ENDPOINTS.LOCATION.CITIES, {
+            name: geocodeResult.city,
+            state: geocodeResult.state,
+            country: geocodeResult.country,
+            coordinates: geocodeResult.coordinates
+          });
+          return newCity;
+        }
       }
+      
+      throw new Error('Could not determine city from address');
+    } catch (error) {
+      console.error('Get or create city failed:', error);
+      throw error;
     }
-    
-    return {
-      city: nearestCity,
-      distance: nearestDistance,
-      neighborhoods: this.getNeighborhoods(nearestCity)
-    };
   }
 
-  // Calculate distance between two coordinates using Haversine formula
-  calculateDistance(lat1, lng1, lat2, lng2) {
+  // Get or create neighborhood from address
+  async getOrCreateNeighborhood(address, cityId) {
+    try {
+      // Geocode the address to get neighborhood info
+      const geocodeResult = await this.geocodeAddress(address);
+      
+      if (geocodeResult.neighborhood || geocodeResult.suburb) {
+        const neighborhoodName = geocodeResult.neighborhood || geocodeResult.suburb;
+        
+        // Check if neighborhood exists in our system
+        const neighborhoodResponse = await api.get(`${ENDPOINTS.LOCATION.NEIGHBORHOODS}?name=${encodeURIComponent(neighborhoodName)}&cityId=${cityId}`);
+        
+        if (neighborhoodResponse.neighborhoods && neighborhoodResponse.neighborhoods.length > 0) {
+          return neighborhoodResponse.neighborhoods[0];
+        } else {
+          // Create new neighborhood if it doesn't exist
+          const newNeighborhood = await api.post(ENDPOINTS.LOCATION.NEIGHBORHOODS, {
+            name: neighborhoodName,
+            cityId: cityId,
+            coordinates: geocodeResult.coordinates,
+            bounds: geocodeResult.bounds
+          });
+          return newNeighborhood;
+        }
+      }
+      
+      throw new Error('Could not determine neighborhood from address');
+    } catch (error) {
+      console.error('Get or create neighborhood failed:', error);
+      throw error;
+    }
+  }
+
+  // Set user location from address
+  async setLocationFromAddress(address) {
+    try {
+      // Get or create city first
+      const city = await this.getOrCreateCity(address);
+      
+      // Get or create neighborhood
+      const neighborhood = await this.getOrCreateNeighborhood(address, city._id);
+      
+      // Set user location
+      const locationData = {
+        city: city.name,
+        cityId: city._id,
+        neighborhood: neighborhood.name,
+        neighborhoodId: neighborhood._id,
+        coordinates: neighborhood.coordinates,
+        address: address
+      };
+      
+      const response = await api.post(ENDPOINTS.USERS.LOCATION, locationData);
+      return response;
+    } catch (error) {
+      console.error('Set location from address failed:', error);
+      throw error;
+    }
+  }
+
+  // Get nearby users
+  async getNearbyUsers(radius = 5) {
+    try {
+      const response = await api.get(`${ENDPOINTS.USERS.NEARBY}?radius=${radius}`);
+      return response;
+    } catch (error) {
+      console.error('Get nearby users failed:', error);
+      throw error;
+    }
+  }
+
+  // Get cities (with optional filtering)
+  async getCities(filters = {}) {
+    try {
+      const queryParams = new URLSearchParams(filters);
+      const response = await api.get(`${ENDPOINTS.LOCATION.CITIES}?${queryParams.toString()}`);
+      return response;
+    } catch (error) {
+      console.error('Get cities failed:', error);
+      throw error;
+    }
+  }
+
+  // Get neighborhoods (with optional filtering)
+  async getNeighborhoods(filters = {}) {
+    try {
+      const queryParams = new URLSearchParams(filters);
+      const response = await api.get(`${ENDPOINTS.LOCATION.NEIGHBORHOODS}?${queryParams.toString()}`);
+      return response;
+    } catch (error) {
+      console.error('Get neighborhoods failed:', error);
+      throw error;
+    }
+  }
+
+  // Get neighborhoods by city
+  async getNeighborhoodsByCity(cityId) {
+    try {
+      const response = await api.get(`${ENDPOINTS.LOCATION.NEIGHBORHOODS}?cityId=${cityId}`);
+      return response;
+    } catch (error) {
+      console.error('Get neighborhoods by city failed:', error);
+      throw error;
+    }
+  }
+
+  // Calculate distance between two points
+  calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Earth's radius in kilometers
     const dLat = this.deg2rad(lat2 - lat1);
-    const dLng = this.deg2rad(lng2 - lng1);
-    
+    const dLon = this.deg2rad(lon2 - lon1);
     const a = 
       Math.sin(dLat/2) * Math.sin(dLat/2) +
       Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    
+      Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c; // Distance in kilometers
-    
     return distance;
   }
 
@@ -245,48 +178,40 @@ class LocationService {
     return deg * (Math.PI/180);
   }
 
-  // Auto-detect location from user's IP or browser geolocation
-  async autoDetectLocation() {
+  // Get location suggestions based on partial input
+  async getLocationSuggestions(query, type = 'both') {
     try {
-      // Try browser geolocation first
-      if (navigator.geolocation) {
-        return new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              try {
-                const { latitude, longitude } = position.coords;
-                const location = await this.reverseGeocode(latitude, longitude);
-                const nearest = this.findNearestLocation(latitude, longitude);
-                
-                resolve({
-                  ...location,
-                  coordinates: { lat: latitude, lng: longitude },
-                  nearestCity: nearest.city,
-                  nearestNeighborhoods: nearest.neighborhoods
-                });
-              } catch (error) {
-                reject(error);
-              }
-            },
-            (error) => {
-              reject(error);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 60000
-            }
-          );
-        });
-      } else {
-        throw new Error('Geolocation not supported');
-      }
+      const response = await api.get(`${ENDPOINTS.LOCATION.GEOCODE}/suggestions?q=${encodeURIComponent(query)}&type=${type}`);
+      return response;
     } catch (error) {
-      console.error('Auto-detection error:', error);
+      console.error('Get location suggestions failed:', error);
       throw error;
     }
   }
+
+  // Validate address format
+  validateAddress(address) {
+    if (!address || typeof address !== 'string') {
+      return { valid: false, error: 'Address must be a non-empty string' };
+    }
+    
+    if (address.length < 10) {
+      return { valid: false, error: 'Address must be at least 10 characters long' };
+    }
+    
+    // Basic validation - address should contain street number and name
+    const hasStreetNumber = /\d/.test(address);
+    const hasStreetName = /[a-zA-Z]/.test(address);
+    
+    if (!hasStreetNumber || !hasStreetName) {
+      return { valid: false, error: 'Address must include street number and street name' };
+    }
+    
+    return { valid: true };
+  }
 }
 
+// Create singleton instance
 const locationService = new LocationService();
+
 export default locationService;

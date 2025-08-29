@@ -193,6 +193,15 @@ export const RealtimeProvider = ({ children }) => {
     setNotifications([]);
   }, []);
 
+  // Toggle WebSocket connection
+  const toggleConnection = useCallback(() => {
+    if (isConnected) {
+      disconnectWebSocket();
+    } else {
+      connectWebSocket();
+    }
+  }, [isConnected, connectWebSocket, disconnectWebSocket]);
+
   // Get connection info
   const getConnectionInfo = useCallback(() => {
     return websocketService.getConnectionStatus();
@@ -210,6 +219,7 @@ export const RealtimeProvider = ({ children }) => {
     // Methods
     connectWebSocket,
     disconnectWebSocket,
+    toggleConnection,
     sendPost,
     sendLike,
     sendComment,
