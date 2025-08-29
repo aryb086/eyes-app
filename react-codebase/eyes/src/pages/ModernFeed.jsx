@@ -156,6 +156,13 @@ const ModernFeed = () => {
       // Refresh posts to show the new one
       setTimeout(() => {
         fetchPosts();
+        // Notify other components that a new post was created
+        window.dispatchEvent(new CustomEvent('postCreated', { 
+          detail: { 
+            city: userLocation.city, 
+            neighborhood: userLocation.neighborhood 
+          } 
+        }));
       }, 500);
       
     } catch (error) {

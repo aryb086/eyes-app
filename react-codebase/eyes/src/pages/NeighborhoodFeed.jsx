@@ -6,67 +6,60 @@ import { Input } from '../components/ui/NewInput';
 import { Eye, Menu, MapPin, User, Search, Plus, Heart, MessageCircle, Bookmark, MoreHorizontal, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
+import postService from '../services/postService';
+import { toast } from 'react-hot-toast';
 
 const NeighborhoodFeed = function() {
   const [posts, setPosts] = useState([]);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState("Capitol Hill");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { cities, neighborhoods, userLocation } = useLocation();
-  
-  useEffect(() => {
-    setPosts([
-      {
-        id: 1,
-        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-        caption: "Beautiful church architecture in downtown Seattle. The Gothic revival style never gets old!",
-        user: {
-          name: "Josigh-Let",
-          avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-          username: "johndoe",
-          location: "Downtown Seattle"
-        },
-        likes: 42,
-        comments: 8,
-        saved: 1,
-        timestamp: "2 hours ago"
-      },
-      {
-        id: 2,
-        image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop",
-        caption: "Sunset view from the waterfront. Perfect evening for a walk!",
-        user: {
-          name: "Sarah Chen",
-          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
-          username: "janesmith",
-          location: "Harbor District"
-        },
-        likes: 67,
-        comments: 12,
-        saved: 3,
-        timestamp: "4 hours ago"
-      },
-      {
-        id: 3,
-        image: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=800&h=600&fit=crop",
-        caption: "New coffee shop opened in Capitol Hill. Great atmosphere and amazing coffee!",
-        user: {
-          name: "Mike Johnson",
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-          username: "mikejohnson",
-          location: "Capitol Hill"
-        },
-        likes: 89,
-        comments: 15,
-        saved: 7,
-        timestamp: "6 hours ago"
-      }
-    ]);
-  }, []);
+  const { neighborhoods, userLocation } = useLocation();
   
   // Use neighborhoods from context with fallback
   const availableNeighborhoods = neighborhoods && neighborhoods.length > 0 ? neighborhoods : ['Capitol Hill', 'Downtown Seattle', 'Demo Neighborhood'];
+  
+  // Load posts for selected neighborhood
+  useEffect(() => {
+    if (selectedNeighborhood) {
+      loadNeighborhoodPosts();
+    }
+  }, [selectedNeighborhood]);
+
+  const loadNeighborhoodPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await postService.getPostsByLocation({
+        neighborhood: selectedNeighborhood,
+        limit: 20
+      });
+      
+      const postsData = response.posts || response.data || [];
+      setPosts(postsData);
+      console.log(`Posts loaded for ${selectedNeighborhood}:`, postsData);
+    } catch (error) {
+      console.error('Failed to load neighborhood posts:', error);
+      toast.error('Failed to load posts for this neighborhood');
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Listen for new posts to refresh the feed
+  useEffect(() => {
+    const handleNewPost = (event) => {
+      if (event.detail.neighborhood === selectedNeighborhood) {
+        console.log('New post created in this neighborhood, refreshing feed...');
+        loadNeighborhoodPosts();
+      }
+    };
+
+    window.addEventListener('postCreated', handleNewPost);
+    return () => window.removeEventListener('postCreated', handleNewPost);
+  }, [selectedNeighborhood]);
   
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const handleLogout = () => {
@@ -211,76 +204,82 @@ const NeighborhoodFeed = function() {
               </div>
             </div>
             
-            {posts.map((post) => (
-              <Card key={post.id} className="overflow-hidden">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center space-x-3">
+            {loading ? (
+              <p>Loading posts...</p>
+            ) : posts.length === 0 ? (
+              <p>No posts yet in this neighborhood. Be the first to create one!</p>
+            ) : (
+              posts.map((post) => (
+                <Card key={post.id} className="overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={post.user.avatar}
+                        alt={post.user.name}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">{post.user.name}</span>
+                          <span className="text-sm text-muted-foreground">@{post.user.username}</span>
+                        </div>
+                        <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          <span>{post.user.location}</span>
+                          <span>•</span>
+                          <span>{post.timestamp}</span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="p-0">
                     <img
-                      src={post.user.avatar}
-                      alt={post.user.name}
-                      className="w-10 h-10 rounded-full"
+                      src={post.image}
+                      alt="Post"
+                      className="w-full h-auto"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold">{post.user.name}</span>
-                        <span className="text-sm text-muted-foreground">@{post.user.username}</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        <span>{post.user.location}</span>
-                        <span>•</span>
-                        <span>{post.timestamp}</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="p-0">
-                  <img
-                    src={post.image}
-                    alt="Post"
-                    className="w-full h-auto"
-                  />
-                  <div className="p-4">
-                    <p className="text-sm mb-4">{post.caption}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center space-x-2"
-                        >
-                          <Heart className="h-4 w-4" />
-                          <span>{post.likes}</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center space-x-2"
-                        >
-                          <MessageCircle className="h-4 w-4" />
-                          <span>{post.comments}</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center space-x-2"
-                        >
-                          <Bookmark className="h-4 w-4" />
-                          <span>{post.saved}</span>
-                        </Button>
+                    <div className="p-4">
+                      <p className="text-sm mb-4">{post.caption}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center space-x-2"
+                          >
+                            <Heart className="h-4 w-4" />
+                            <span>{post.likes}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center space-x-2"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            <span>{post.comments}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center space-x-2"
+                          >
+                            <Bookmark className="h-4 w-4" />
+                            <span>{post.saved}</span>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </main>
         

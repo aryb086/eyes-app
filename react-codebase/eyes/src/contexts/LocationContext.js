@@ -102,11 +102,36 @@ export const LocationProvider = ({ children }) => {
       // This will be replaced with actual API calls when backend is ready
       console.log('Creating mock location - backend endpoints not ready yet');
       
+      // Simulate geocoding by parsing the address
+      let detectedCity = 'Demo City';
+      let detectedNeighborhood = 'Demo Neighborhood';
+      
+      // Basic address parsing (this would be replaced with real geocoding)
+      if (address.toLowerCase().includes('seattle')) {
+        detectedCity = 'Seattle';
+        if (address.toLowerCase().includes('capitol hill')) {
+          detectedNeighborhood = 'Capitol Hill';
+        } else if (address.toLowerCase().includes('downtown')) {
+          detectedNeighborhood = 'Downtown Seattle';
+        } else {
+          detectedNeighborhood = 'Seattle Neighborhood';
+        }
+      } else if (address.toLowerCase().includes('new york')) {
+        detectedCity = 'New York';
+        detectedNeighborhood = 'NYC Neighborhood';
+      } else if (address.toLowerCase().includes('los angeles')) {
+        detectedCity = 'Los Angeles';
+        detectedNeighborhood = 'LA Neighborhood';
+      } else if (address.toLowerCase().includes('chicago')) {
+        detectedCity = 'Chicago';
+        detectedNeighborhood = 'Chicago Neighborhood';
+      }
+      
       const mockLocation = {
-        city: 'Demo City',
-        cityId: 'demo-city-1',
-        neighborhood: 'Demo Neighborhood',
-        neighborhoodId: 'demo-neighborhood-1',
+        city: detectedCity,
+        cityId: `${detectedCity.toLowerCase().replace(/\s+/g, '-')}-1`,
+        neighborhood: detectedNeighborhood,
+        neighborhoodId: `${detectedNeighborhood.toLowerCase().replace(/\s+/g, '-')}-1`,
         coordinates: [47.6062, -122.3321], // Seattle coordinates as example
         address: address
       };
@@ -114,12 +139,12 @@ export const LocationProvider = ({ children }) => {
       setUserLocation(mockLocation);
       localStorage.setItem('userLocation', JSON.stringify(mockLocation));
       
-      // Add demo data to cities and neighborhoods arrays to prevent UI errors
-      if (!cities.includes('Demo City')) {
-        setCities(prev => [...prev, 'Demo City']);
+      // Add detected city and neighborhood to arrays if they don't exist
+      if (!cities.includes(detectedCity)) {
+        setCities(prev => [...prev, detectedCity]);
       }
-      if (!neighborhoods.includes('Demo Neighborhood')) {
-        setNeighborhoods(prev => [...prev, 'Demo Neighborhood']);
+      if (!neighborhoods.includes(detectedNeighborhood)) {
+        setNeighborhoods(prev => [...prev, detectedNeighborhood]);
       }
       
       return { success: true, location: mockLocation };

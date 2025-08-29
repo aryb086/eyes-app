@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const ModernRegister = () => {
   const [formData, setFormData] = useState({
+    name: '',
     username: '',
     email: '',
     password: '',
@@ -31,8 +32,16 @@ const ModernRegister = () => {
   };
 
   const validateForm = () => {
+    if (!formData.name.trim()) {
+      setError('Full name is required');
+      return false;
+    }
     if (!formData.username.trim()) {
       setError('Username is required');
+      return false;
+    }
+    if (formData.username.length < 3) {
+      setError('Username must be at least 3 characters long');
       return false;
     }
     if (!formData.email.trim()) {
@@ -67,7 +76,7 @@ const ModernRegister = () => {
     setError('');
 
     try {
-      await register(formData.username, formData.email, formData.password);
+      await register(formData.name, formData.username, formData.email, formData.password);
       navigate('/feed');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -115,6 +124,18 @@ const ModernRegister = () => {
           <CardContent className="space-y-4">
             {/* Register Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  name="name"
+                  placeholder="Full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="h-11"
+                />
+              </div>
+              
               <div className="space-y-2">
                 <Input
                   type="text"
