@@ -3,6 +3,11 @@
 
 // Get API URL from environment variable or use production URL as fallback
 const getApiUrl = () => {
+  // Always use environment variable if available
+  if (process.env.REACT_APP_API_BASE_URL) {
+    return process.env.REACT_APP_API_BASE_URL;
+  }
+  
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
     // For production builds, use the production URL directly
@@ -10,11 +15,11 @@ const getApiUrl = () => {
       return 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
     }
     // For local development, use localhost
-    return 'http://localhost:5000/api';
+    return 'http://localhost:5000/api/v1';
   }
   
   // Fallback for SSR or other environments
-  return process.env?.REACT_APP_API_BASE_URL || 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
+  return 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
 };
 
 export const API_URL = getApiUrl();

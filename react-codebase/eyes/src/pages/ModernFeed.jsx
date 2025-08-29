@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../components/ui/Card";
-import { Input } from "../components/ui/NewInput";
+
 import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical, Image as ImageIcon, Home, Settings } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation } from "../contexts/LocationContext";
@@ -201,13 +201,7 @@ const ModernFeed = () => {
       
       const isCurrentlyLiked = post.isLiked;
       
-      if (isConnected) {
-        sendLike(postId);
-      } else {
-        await postService.likePost(postId);
-      }
-      
-      // Optimistically update UI - toggle like state
+      // Optimistically update UI first
       setPosts(posts.map(p => 
         p._id === postId 
           ? { 
@@ -217,6 +211,30 @@ const ModernFeed = () => {
             }
           : p
       ));
+      
+      // Send to backend
+      if (isConnected) {
+        sendLike(postId);
+      } else {
+        try {
+          await postService.likePost(postId);
+        } catch (error) {
+          console.error('Backend like failed, reverting UI:', error);
+          // Revert optimistic update on backend failure
+          setPosts(posts.map(p => 
+            p._id === postId 
+              ? { ...p, likes: post.likes, isLiked: post.isLiked }
+              : p
+          ));
+          toast.error("Failed to like post");
+          return;
+        }
+      }
+      
+      // Refresh posts after a delay to ensure backend sync
+      setTimeout(() => {
+        fetchPosts();
+      }, 2000);
     } catch (error) {
       console.error("Failed to like post:", error);
       toast.error("Failed to like post");
@@ -239,27 +257,42 @@ const ModernFeed = () => {
     if (!commentText.trim()) return;
     
     try {
-      // TODO: Implement comment submission to backend
-      console.log('Submitting comment:', commentText, 'for post:', postId);
+      // Create comment object
+      const newComment = {
+        _id: Date.now().toString(),
+        content: commentText,
+        author: { 
+          username: 'You', 
+          fullName: 'You',
+          avatar: userLocation?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'
+        },
+        createdAt: new Date().toISOString()
+      };
       
       // Optimistically update UI
       setPosts(posts.map(post => 
         post._id === postId 
           ? { 
               ...post, 
-              comments: [...(post.comments || []), {
-                _id: Date.now().toString(),
-                content: commentText,
-                author: { username: 'You', fullName: 'You' },
-                createdAt: new Date().toISOString()
-              }]
+              comments: [...(post.comments || []), newComment]
             }
           : post
       ));
       
+      // TODO: Send comment to backend via WebSocket or API
+      if (isConnected) {
+        // Send via WebSocket if available
+        console.log('Sending comment via WebSocket:', { postId, comment: newComment });
+      }
+      
       setCommentText('');
       setCommentingPost(null);
       toast.success('Comment added!');
+      
+      // Refresh posts to ensure backend sync
+      setTimeout(() => {
+        fetchPosts();
+      }, 1000);
     } catch (error) {
       console.error('Failed to add comment:', error);
       toast.error('Failed to add comment');

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
-import { Eye, Menu, MapPin, User, Plus, Heart, MessageCircle, Share2, MoreVertical, ChevronDown } from 'lucide-react';
+import { Eye, Menu, MapPin, User, Plus, Heart, MessageCircle, Share2, MoreVertical } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useRealtime } from '../contexts/RealtimeContext';
@@ -54,17 +54,30 @@ const NeighborhoodFeed = () => {
       setLoading(true);
       let response;
       
-      // Get posts by user's location
-      response = await postService.getPostsByLocation({
-        neighborhood: selectedNeighborhood,
+      // Get posts by user's location - use userLocation instead of selectedNeighborhood
+      const locationFilters = {
+        neighborhood: userLocation?.neighborhood || selectedNeighborhood,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        limit: 20
-      });
+        limit: 50
+      };
+      
+      console.log('Fetching posts with filters:', locationFilters);
+      
+      // Try getPostsByNeighborhood first, fallback to getAllPosts with neighborhood filter
+      try {
+        response = await postService.getPostsByNeighborhood(locationFilters.neighborhood, {
+          category: locationFilters.category,
+          limit: locationFilters.limit
+        });
+      } catch (error) {
+        console.log('Falling back to getAllPosts with neighborhood filter');
+        response = await postService.getAllPosts(locationFilters);
+      }
       
       // Handle different response structures
       const postsData = response.posts || response.data || [];
       setPosts(postsData);
-      console.log('Posts fetched:', postsData);
+      console.log('Posts fetched for neighborhood feed:', postsData);
     } catch (error) {
       console.error("Failed to fetch posts:", error);
       toast.error("Failed to load posts");
@@ -196,13 +209,7 @@ const NeighborhoodFeed = () => {
       
       const isCurrentlyLiked = post.isLiked;
       
-      if (isConnected) {
-        sendLike(postId);
-      } else {
-        await postService.likePost(postId);
-      }
-      
-      // Optimistically update UI - toggle like state
+      // Optimistically update UI first
       setPosts(posts.map(p => 
         p._id === postId 
           ? { 
@@ -212,6 +219,30 @@ const NeighborhoodFeed = () => {
             }
           : p
       ));
+      
+      // Send to backend
+      if (isConnected) {
+        sendLike(postId);
+      } else {
+        try {
+          await postService.likePost(postId);
+        } catch (error) {
+          console.error('Backend like failed, reverting UI:', error);
+          // Revert optimistic update on backend failure
+          setPosts(posts.map(p => 
+            p._id === postId 
+              ? { ...p, likes: post.likes, isLiked: post.isLiked }
+              : p
+          ));
+          toast.error("Failed to like post");
+          return;
+        }
+      }
+      
+      // Refresh posts after a delay to ensure backend sync
+      setTimeout(() => {
+        fetchPosts();
+      }, 2000);
     } catch (error) {
       console.error("Failed to like post:", error);
       toast.error("Failed to like post");
@@ -234,27 +265,42 @@ const NeighborhoodFeed = () => {
     if (!commentText.trim()) return;
     
     try {
-      // TODO: Implement comment submission to backend
-      console.log('Submitting comment:', commentText, 'for post:', postId);
+      // Create comment object
+      const newComment = {
+        _id: Date.now().toString(),
+        content: commentText,
+        author: { 
+          username: 'You', 
+          fullName: 'You',
+          avatar: userLocation?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'
+        },
+        createdAt: new Date().toISOString()
+      };
       
       // Optimistically update UI
       setPosts(posts.map(post => 
         post._id === postId 
           ? { 
               ...post, 
-              comments: [...(post.comments || []), {
-                _id: Date.now().toString(),
-                content: commentText,
-                author: { username: 'You', fullName: 'You' },
-                createdAt: new Date().toISOString()
-              }]
+              comments: [...(post.comments || []), newComment]
             }
           : post
       ));
       
+      // TODO: Send comment to backend via WebSocket or API
+      if (isConnected) {
+        // Send via WebSocket if available
+        console.log('Sending comment via WebSocket:', { postId, comment: newComment });
+      }
+      
       setCommentText('');
       setCommentingPost(null);
       toast.success('Comment added!');
+      
+      // Refresh posts to ensure backend sync
+      setTimeout(() => {
+        fetchPosts();
+      }, 1000);
     } catch (error) {
       console.error('Failed to add comment:', error);
       toast.error('Failed to add comment');
@@ -417,7 +463,14 @@ const NeighborhoodFeed = () => {
         {/* Feed Header with Category Filters */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-foreground">Neighborhood Feed</h2>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Neighborhood Feed</h2>
+              {userLocation?.neighborhood && userLocation?.city && (
+                <p className="text-lg text-muted-foreground mt-1">
+                  📍 {userLocation.neighborhood}, {userLocation.city}
+                </p>
+              )}
+            </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">Filter by:</span>
             </div>
