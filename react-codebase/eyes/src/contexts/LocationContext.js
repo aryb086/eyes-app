@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import locationService from '../services/locationService';
+// import locationService from '../services/locationService'; // Not needed until backend is ready
 
 const LocationContext = createContext();
 
@@ -27,21 +27,17 @@ export const LocationProvider = ({ children }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Load user's saved location from localStorage
       const savedLocation = localStorage.getItem('userLocation');
       if (savedLocation) {
         const parsedLocation = JSON.parse(savedLocation);
         setUserLocation(parsedLocation);
-        
-        // Load cities and neighborhoods for the user's location
-        if (parsedLocation.city) {
-          await loadCities();
-          if (parsedLocation.neighborhood) {
-            await loadNeighborhoods(parsedLocation.city);
-          }
-        }
       }
+
+      // Load demo cities and neighborhoods (skip backend API calls for now)
+      await loadCities();
+      await loadNeighborhoods();
     } catch (error) {
       console.error('Error loading location data:', error);
       setError('Failed to load location data');
@@ -50,15 +46,22 @@ export const LocationProvider = ({ children }) => {
     }
   };
 
-  // Load cities (this will be empty initially until users start registering)
+  // Load cities (using demo data until backend is ready)
   const loadCities = async () => {
     try {
+      // For now, skip backend API calls since endpoints don't exist yet
+      // This will be replaced with actual API calls when backend is ready
+      console.log('Using fallback cities data - backend endpoints not ready yet');
+      setCities(['Seattle', 'Demo City']);
+      
+      /* TODO: Uncomment when backend cities endpoint is ready
       const response = await locationService.getCities();
       if (response.cities) {
         setCities(response.cities);
       } else {
         setCities([]);
       }
+      */
     } catch (error) {
       console.error('Failed to load cities:', error);
       // Fallback: provide demo cities to prevent UI errors
@@ -66,15 +69,22 @@ export const LocationProvider = ({ children }) => {
     }
   };
 
-  // Load neighborhoods for a specific city
-  const loadNeighborhoods = async (cityName) => {
+  // Load neighborhoods (using demo data until backend is ready)
+  const loadNeighborhoods = async (cityName = null) => {
     try {
+      // For now, skip backend API calls since endpoints don't exist yet
+      // This will be replaced with actual API calls when backend is ready
+      console.log('Using fallback neighborhoods data - backend endpoints not ready yet');
+      setNeighborhoods(['Capitol Hill', 'Downtown Seattle', 'Demo Neighborhood']);
+      
+      /* TODO: Uncomment when backend neighborhoods endpoint is ready
       const response = await locationService.getNeighborhoods({ city: cityName });
       if (response.neighborhoods) {
         setNeighborhoods(response.neighborhoods);
       } else {
         setNeighborhoods([]);
       }
+      */
     } catch (error) {
       console.error('Failed to load neighborhoods:', error);
       // Fallback: provide demo neighborhoods to prevent UI errors
@@ -90,6 +100,8 @@ export const LocationProvider = ({ children }) => {
       
       // For now, create a mock location since backend endpoints don't exist yet
       // This will be replaced with actual API calls when backend is ready
+      console.log('Creating mock location - backend endpoints not ready yet');
+      
       const mockLocation = {
         city: 'Demo City',
         cityId: 'demo-city-1',
@@ -102,9 +114,13 @@ export const LocationProvider = ({ children }) => {
       setUserLocation(mockLocation);
       localStorage.setItem('userLocation', JSON.stringify(mockLocation));
       
-      // Refresh cities and neighborhoods
-      await loadCities();
-      await loadNeighborhoods(mockLocation.city);
+      // Add demo data to cities and neighborhoods arrays to prevent UI errors
+      if (!cities.includes('Demo City')) {
+        setCities(prev => [...prev, 'Demo City']);
+      }
+      if (!neighborhoods.includes('Demo Neighborhood')) {
+        setNeighborhoods(prev => [...prev, 'Demo Neighborhood']);
+      }
       
       return { success: true, location: mockLocation };
       
@@ -166,26 +182,50 @@ export const LocationProvider = ({ children }) => {
     localStorage.removeItem('userLocation');
   };
 
-  // Get nearby users
+  // Get nearby users (placeholder until backend is ready)
   const getNearbyUsers = async (radius = 5) => {
     try {
+      // For now, return empty array since backend endpoint doesn't exist
+      console.log('getNearbyUsers not implemented yet - backend endpoint not ready');
+      return { users: [] };
+      
+      /* TODO: Uncomment when backend endpoint is ready
       const response = await locationService.getNearbyUsers(radius);
       return response;
+      */
     } catch (error) {
       console.error('Failed to get nearby users:', error);
       throw error;
     }
   };
 
-  // Validate address format
+  // Validate address format (basic validation)
   const validateAddress = (address) => {
-    return locationService.validateAddress(address);
+    if (!address || typeof address !== 'string') {
+      return { valid: false, error: 'Address must be a non-empty string' };
+    }
+
+    if (address.length < 10) {
+      return { valid: false, error: 'Address must be at least 10 characters long' };
+    }
+
+    // Basic validation - address should contain street number and name
+    const hasStreetNumber = /\d/.test(address);
+    const hasStreetName = /[a-zA-Z]/.test(address);
+
+    if (!hasStreetNumber || !hasStreetName) {
+      return { valid: false, error: 'Address must include street number and street name' };
+    }
+
+    return { valid: true };
   };
 
+  // Check if user has location set
   const hasLocation = () => {
     return userLocation !== null;
   };
 
+  // Get location display string
   const getLocationDisplay = () => {
     if (!userLocation) {
       return 'No location set';
