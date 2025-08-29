@@ -32,8 +32,12 @@ const ModernLogin = () => {
     setError('');
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/feed');
+      const result = await login(formData.email, formData.password);
+      if (result.success) {
+        navigate('/feed');
+      } else {
+        setError(result.message || 'Login failed. Please try again.');
+      }
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
