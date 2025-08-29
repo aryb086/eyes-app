@@ -17,13 +17,57 @@ exports.getPosts = async (req, res, next) => {
       });
     }
 
-    // For now, return empty posts array to test the endpoint
-    // TODO: Implement full query logic once basic endpoint is working
+    const { city, neighborhood, category, limit = 50, page = 1 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    // Build query filters
+    const filters = {};
+    if (city) filters.city = city;
+    if (neighborhood) filters.neighborhood = neighborhood;
+    if (category && category !== 'undefined') filters.category = category;
+    
+    console.log('Query filters:', filters);
+    
+    const posts = await Post.find(filters)
+      .populate({
+        path: 'author',
+        select: 'username fullName profilePicture avatar'
+      })
+      .populate({
+        path: 'comments',
+        select: 'content author likes createdAt',
+        options: { sort: { createdAt: -1 } },
+        populate: [
+          {
+            path: 'author',
+            select: 'username fullName profilePicture avatar'
+          },
+          {
+            path: 'likes',
+            select: 'username fullName profilePicture avatar'
+          }
+        ]
+      })
+      .populate({
+        path: 'likes',
+        select: 'username fullName profilePicture avatar'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await Post.countDocuments(filters);
+    
     res.status(200).json({
       success: true,
-      count: 0,
-      pagination: {},
-      data: []
+      count: posts.length,
+      total,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / limit)
+      },
+      posts: posts
     });
 
   } catch (err) {
