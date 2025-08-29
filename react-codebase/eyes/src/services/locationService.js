@@ -4,7 +4,7 @@ class LocationService {
   // Get all cities
   async getCities() {
     try {
-      const response = await api.get(ENDPOINTS.LOCATION.GET_CITIES);
+      const response = await api.get(ENDPOINTS.LOCATION.CITIES);
       return response;
     } catch (error) {
       console.error('Get cities failed:', error);
@@ -16,7 +16,7 @@ class LocationService {
   async getNeighborhoods(filters = {}) {
     try {
       const queryParams = new URLSearchParams(filters);
-      const response = await api.get(`${ENDPOINTS.LOCATION.GET_NEIGHBORHOODS}?${queryParams.toString()}`);
+      const response = await api.get(`${ENDPOINTS.LOCATION.NEIGHBORHOODS}?${queryParams.toString()}`);
       return response;
     } catch (error) {
       console.error('Get neighborhoods failed:', error);
