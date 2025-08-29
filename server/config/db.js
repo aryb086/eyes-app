@@ -14,6 +14,9 @@ const options = {
 // Create the database connection
 const connectDB = async () => {
   try {
+    logger.info(`Attempting to connect to MongoDB at: ${config.mongoose.url}`);
+    logger.info(`MongoDB connection options:`, options);
+    
     await mongoose.connect(config.mongoose.url, options);
     logger.info('MongoDB connected successfully');
 
@@ -40,6 +43,7 @@ const connectDB = async () => {
     });
   } catch (error) {
     logger.error(`MongoDB connection error: ${error.message}`);
+    logger.error(`MongoDB connection stack: ${error.stack}`);
     logger.warn('Server will continue without database connection');
     // Don't exit the process, let the server start
     // process.exit(1);
