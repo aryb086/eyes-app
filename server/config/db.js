@@ -40,8 +40,9 @@ const connectDB = async () => {
     });
   } catch (error) {
     logger.error(`MongoDB connection error: ${error.message}`);
-    // Exit process with failure
-    process.exit(1);
+    logger.warn('Server will continue without database connection');
+    // Don't exit the process, let the server start
+    // process.exit(1);
   }
 };
 

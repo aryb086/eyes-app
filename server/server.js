@@ -42,9 +42,11 @@ app.set('trust proxy', true);
 // Create HTTP server
 const server = http.createServer(app);
 
-// Connect to MongoDB
+// Connect to MongoDB (non-blocking)
 const connectDB = require('./config/db');
-connectDB();
+connectDB().catch(err => {
+  logger.warn('Database connection failed, but server will continue:', err.message);
+});
 
 // Set security HTTP headers
 app.use(setSecurityHeaders);
