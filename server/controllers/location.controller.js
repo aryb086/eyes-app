@@ -32,7 +32,7 @@ const getCities = async (req, res) => {
     res.status(200).json({
       success: true,
       count: cities.length,
-      data: cities
+      cities: cities
     });
   } catch (error) {
     res.status(500).json({
@@ -58,7 +58,7 @@ const getNeighborhoods = async (req, res) => {
     res.status(200).json({
       success: true,
       count: filteredNeighborhoods.length,
-      data: filteredNeighborhoods
+      neighborhoods: filteredNeighborhoods
     });
   } catch (error) {
     res.status(500).json({
