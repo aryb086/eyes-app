@@ -117,6 +117,16 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Server is running' });
 });
 
+// Test endpoint that doesn't require database
+app.get('/api/v1/test', (req, res) => {
+  res.status(200).json({ 
+    status: 'success', 
+    message: 'API is working!',
+    timestamp: new Date().toISOString(),
+    environment: config.env
+  });
+});
+
 // Note: Global error handler is defined below; avoid early handlers that mask proper status/messages
 
 // 404 handler

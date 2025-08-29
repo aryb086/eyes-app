@@ -1,12 +1,22 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
+const mongoose = require('mongoose');
 
 // @desc    Get all posts
 // @route   GET /api/posts
 // @access  Public
 exports.getPosts = async (req, res, next) => {
   try {
+    // Check if database is connected
+    if (!mongoose.connection.readyState) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not connected. Please try again later.',
+        error: 'Database connection unavailable'
+      });
+    }
+
     // Copy req.query
     const reqQuery = { ...req.query };
 
