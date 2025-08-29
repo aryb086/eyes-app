@@ -98,7 +98,13 @@ exports.getPosts = async (req, res, next) => {
       data: posts
     });
   } catch (err) {
-    next(err);
+    console.error('Error in getPosts:', err);
+    // Return a more specific error response
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch posts',
+      error: err.message
+    });
   }
 };
 
