@@ -134,6 +134,7 @@ exports.createPost = async (req, res, next) => {
     console.log('Request body:', req.body);
     console.log('User ID:', req.user.id);
     console.log('Headers:', req.headers);
+    console.log('File:', req.file);
     
     // Add user and location data to req.body
     const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
@@ -146,8 +147,20 @@ exports.createPost = async (req, res, next) => {
       stateCode: req.body.stateCode || user.stateCode,
       neighborhood: req.body.neighborhood || user.neighborhood
     };
+
+    // Handle image upload if present
+    if (req.file) {
+      // For now, store the file info (in production, you'd upload to cloud storage)
+      postData.images = [{
+        filename: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        // In production, you'd store the cloud storage URL here
+        url: `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
+      }];
+    }
     
-    console.log('Post data with location:', postData);
+    console.log('Post data with location and image:', postData);
 
     const post = await Post.create(postData);
     console.log('Post created successfully:', post);
@@ -164,9 +177,15 @@ exports.createPost = async (req, res, next) => {
     
     console.log('User updated with new post:', updatedUser);
 
+    // Populate the author field for the response
+    const populatedPost = await Post.findById(post._id).populate({
+      path: 'author',
+      select: 'username fullName profilePicture avatar'
+    });
+
     res.status(201).json({
       success: true,
-      data: post
+      data: populatedPost
     });
   } catch (err) {
     console.error('Error creating post:', err);

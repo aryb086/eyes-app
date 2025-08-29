@@ -44,8 +44,15 @@ const postSchema = new mongoose.Schema({
     trim: true
   }],
   location: {
-    type: String,
-    trim: true
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0]
+    }
   },
   scope: {
     type: String,

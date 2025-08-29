@@ -3,6 +3,23 @@ const router = express.Router();
 const { check } = require('express-validator');
 const postController = require('../controllers/post.controller');
 const auth = require('../middlewares/auth.middleware');
+const multer = require('multer');
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
 
 // Public routes
 router.get('/', postController.getPosts);
@@ -20,10 +37,11 @@ router.get('/user/:userId', postController.getPostsByUser);
 router.use(auth.protect);
 
 // @route   POST /api/posts
-// @desc    Create a post
+// @desc    Create a post (with or without image)
 // @access  Private
 router.post(
   '/',
+  upload.single('image'), // Handle single image upload
   [
     check('content', 'Content is required')
       .not()
