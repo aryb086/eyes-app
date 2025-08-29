@@ -66,7 +66,28 @@ const userSchema = new mongoose.Schema({
   // OAuth fields
   googleId: String,
   githubId: String,
-  avatar: String
+  avatar: String,
+  // User's posts
+  posts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post'
+  }],
+  // Location fields
+  city: String,
+  cityId: String,
+  stateCode: String,
+  neighborhood: String,
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0]
+    }
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

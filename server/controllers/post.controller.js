@@ -150,14 +150,9 @@ exports.createPost = async (req, res, next) => {
 
     // Handle image upload if present
     if (req.file) {
-      // For now, store the file info (in production, you'd upload to cloud storage)
-      postData.images = [{
-        filename: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        // In production, you'd store the cloud storage URL here
-        url: `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
-      }];
+      // For now, store the base64 data URL (in production, you'd upload to cloud storage)
+      const imageUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      postData.images = [imageUrl];
     }
     
     console.log('Post data with location and image:', postData);
