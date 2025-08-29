@@ -211,20 +211,20 @@ const CityFeed = function() {
                   <CardHeader className="pb-3">
                     <div className="flex items-center space-x-3">
                       <img
-                        src={post.user.avatar}
-                        alt={post.user.name}
+                        src={post.author?.avatar || post.author?.profilePicture || 'https://randomuser.me/api/portraits/lego/1.jpg'}
+                        alt={post.author?.fullName || post.author?.username}
                         className="w-10 h-10 rounded-full"
                       />
                       <div className="flex-1">
                         <div className="flex items-center space-x-2">
-                          <span className="font-semibold">{post.user.name}</span>
-                          <span className="text-sm text-muted-foreground">@{post.user.username}</span>
+                          <span className="font-semibold">{post.author?.fullName || post.author?.username}</span>
+                          <span className="text-sm text-muted-foreground">@{post.author?.username}</span>
                         </div>
                         <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                           <MapPin className="h-3 w-3" />
-                          <span>{post.user.location}</span>
+                          <span>{post.neighborhood}, {post.city}</span>
                           <span>•</span>
-                          <span>{post.timestamp}</span>
+                                                      <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                       <Button
