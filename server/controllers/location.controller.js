@@ -1,5 +1,3 @@
-const asyncHandler = require('express-async-handler');
-
 // Sample cities data (you can expand this)
 const cities = [
   { name: 'Seattle', state: 'WA', country: 'USA' },
@@ -29,7 +27,7 @@ const neighborhoods = [
 ];
 
 // Get all cities
-const getCities = asyncHandler(async (req, res) => {
+const getCities = async (req, res) => {
   try {
     res.status(200).json({
       success: true,
@@ -43,10 +41,10 @@ const getCities = asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-});
+};
 
 // Get neighborhoods (optionally filtered by city)
-const getNeighborhoods = asyncHandler(async (req, res) => {
+const getNeighborhoods = async (req, res) => {
   try {
     const { city } = req.query;
     
@@ -69,10 +67,10 @@ const getNeighborhoods = asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-});
+};
 
 // Geocode address to coordinates
-const geocodeAddress = asyncHandler(async (req, res) => {
+const geocodeAddress = async (req, res) => {
   try {
     const { address } = req.query;
     
@@ -106,10 +104,10 @@ const geocodeAddress = asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-});
+};
 
 // Reverse geocode coordinates to address
-const reverseGeocode = asyncHandler(async (req, res) => {
+const reverseGeocode = async (req, res) => {
   try {
     const { lat, lng } = req.query;
     
@@ -143,10 +141,10 @@ const reverseGeocode = asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-});
+};
 
 // Create new city (protected route)
-const createCity = asyncHandler(async (req, res) => {
+const createCity = async (req, res) => {
   try {
     const { name, state, country } = req.body;
     
@@ -172,10 +170,10 @@ const createCity = asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-});
+};
 
 // Create new neighborhood (protected route)
-const createNeighborhood = asyncHandler(async (req, res) => {
+const createNeighborhood = async (req, res) => {
   try {
     const { name, city, state } = req.body;
     
@@ -201,7 +199,7 @@ const createNeighborhood = asyncHandler(async (req, res) => {
       error: error.message
     });
   }
-});
+};
 
 module.exports = {
   getCities,
