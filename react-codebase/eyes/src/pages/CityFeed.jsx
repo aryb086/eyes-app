@@ -57,7 +57,7 @@ const CityFeed = () => {
       // Get posts by user's location - use userLocation instead of selectedCity
       const locationFilters = {
         city: userLocation?.city || selectedCity,
-        category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        ...(selectedCategory !== 'all' && { category: selectedCategory }),
         limit: 50
       };
       

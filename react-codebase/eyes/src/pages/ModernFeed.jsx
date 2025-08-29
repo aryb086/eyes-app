@@ -54,14 +54,14 @@ const ModernFeed = () => {
         response = await postService.getPostsByLocation({
           city: userLocation.city,
           neighborhood: userLocation.neighborhood,
-          category: selectedCategory !== 'all' ? selectedCategory : undefined,
+          ...(selectedCategory !== 'all' && { category: selectedCategory }),
           limit: 20
         });
       } else {
         // Get all posts if no location set
         response = await postService.getAllPosts({ 
           limit: 20,
-          category: selectedCategory !== 'all' ? selectedCategory : undefined
+          ...(selectedCategory !== 'all' && { category: selectedCategory })
         });
       }
       

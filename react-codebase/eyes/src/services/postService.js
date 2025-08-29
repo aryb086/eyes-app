@@ -27,8 +27,8 @@ class PostService {
   // Get posts by city
   async getPostsByCity(city, filters = {}) {
     try {
-      const queryParams = new URLSearchParams({ city, ...filters });
-      const response = await api.get(`${ENDPOINTS.POSTS.GET_BY_CITY}?${queryParams.toString()}`);
+      const queryParams = new URLSearchParams(filters);
+      const response = await api.get(`${ENDPOINTS.POSTS.GET_BY_CITY(city)}?${queryParams.toString()}`);
       return response;
     } catch (error) {
       console.error('Get posts by city failed:', error);
@@ -39,8 +39,8 @@ class PostService {
   // Get posts by neighborhood
   async getPostsByNeighborhood(neighborhood, filters = {}) {
     try {
-      const queryParams = new URLSearchParams({ neighborhood, ...filters });
-      const response = await api.get(`${ENDPOINTS.POSTS.GET_BY_NEIGHBORHOOD}?${queryParams.toString()}`);
+      const queryParams = new URLSearchParams(filters);
+      const response = await api.get(`${ENDPOINTS.POSTS.GET_BY_NEIGHBORHOOD(neighborhood)}?${queryParams.toString()}`);
       return response;
     } catch (error) {
       console.error('Get posts by neighborhood failed:', error);

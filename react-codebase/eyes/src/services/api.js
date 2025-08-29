@@ -59,8 +59,8 @@ export const ENDPOINTS = {
     UNLIKE: (id) => `/posts/${id}/unlike`,
     COMMENT: (id) => `/posts/${id}/comments`,
     GET_BY_LOCATION: '/posts/location',
-    GET_BY_CITY: '/posts/city',
-    GET_BY_NEIGHBORHOOD: '/posts/neighborhood',
+    GET_BY_CITY: (city) => `/posts/city/${city}`,
+    GET_BY_NEIGHBORHOOD: (neighborhood) => `/posts/neighborhood/${neighborhood}`,
   },
   
   // Location endpoints
