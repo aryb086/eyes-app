@@ -21,7 +21,7 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 
 // Import utilities
-const logger = require('./utils/logger');
+// const logger = require('./utils/logger');
 // const { errorResponse } = require('./utils/apiUtils');
 
 // Import security middleware
@@ -44,11 +44,11 @@ const server = http.createServer(app);
 
 // Connect to MongoDB (non-blocking)
 const connectDB = require('./config/db');
-logger.info('About to call connectDB()...');
+console.log('About to call connectDB()...');
 connectDB().catch(err => {
-  logger.warn('Database connection failed, but server will continue:', err.message);
+  console.log('Database connection failed, but server will continue:', err.message);
 });
-logger.info('connectDB() called, continuing with server startup...');
+console.log('connectDB() called, continuing with server startup...');
 
 // Set security HTTP headers
 // app.use(setSecurityHeaders);
