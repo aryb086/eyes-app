@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-// import locationService from '../services/locationService'; // Not needed until backend is ready
+import locationService from '../services/locationService';
 
 const LocationContext = createContext();
 
@@ -46,22 +46,15 @@ export const LocationProvider = ({ children }) => {
     }
   };
 
-  // Load cities (using demo data until backend is ready)
+  // Load cities from backend
   const loadCities = async () => {
     try {
-      // For now, skip backend API calls since endpoints don't exist yet
-      // This will be replaced with actual API calls when backend is ready
-      console.log('Using fallback cities data - backend endpoints not ready yet');
-      setCities(['Seattle', 'Demo City']);
-      
-      /* TODO: Uncomment when backend cities endpoint is ready
       const response = await locationService.getCities();
       if (response.cities) {
-        setCities(response.cities);
+        setCities(response.cities.map(city => city.name));
       } else {
         setCities([]);
       }
-      */
     } catch (error) {
       console.error('Failed to load cities:', error);
       // Fallback: provide demo cities to prevent UI errors
@@ -69,22 +62,15 @@ export const LocationProvider = ({ children }) => {
     }
   };
 
-  // Load neighborhoods (using demo data until backend is ready)
+  // Load neighborhoods from backend
   const loadNeighborhoods = async (cityName = null) => {
     try {
-      // For now, skip backend API calls since endpoints don't exist yet
-      // This will be replaced with actual API calls when backend is ready
-      console.log('Using fallback neighborhoods data - backend endpoints not ready yet');
-      setNeighborhoods(['Capitol Hill', 'Downtown Seattle', 'Demo Neighborhood']);
-      
-      /* TODO: Uncomment when backend neighborhoods endpoint is ready
       const response = await locationService.getNeighborhoods({ city: cityName });
       if (response.neighborhoods) {
-        setNeighborhoods(response.neighborhoods);
+        setNeighborhoods(response.neighborhoods.map(neighborhood => neighborhood.name));
       } else {
         setNeighborhoods([]);
       }
-      */
     } catch (error) {
       console.error('Failed to load neighborhoods:', error);
       // Fallback: provide demo neighborhoods to prevent UI errors

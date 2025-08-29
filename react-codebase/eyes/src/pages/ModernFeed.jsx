@@ -35,6 +35,8 @@ const ModernFeed = () => {
   });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [imagePreview, setImagePreview] = useState(null);
+  const [commentingPost, setCommentingPost] = useState(null);
+  const [commentText, setCommentText] = useState('');
 
   // Fetch posts on component mount
   useEffect(() => {
@@ -195,21 +197,66 @@ const ModernFeed = () => {
 
   const handleLike = async (postId) => {
     try {
+      const post = posts.find(p => p._id === postId);
+      if (!post) return;
+      
+      const isCurrentlyLiked = post.isLiked;
+      
       if (isConnected) {
         sendLike(postId);
       } else {
         await postService.likePost(postId);
       }
       
-      // Optimistically update UI
-      setPosts(posts.map(post => 
-        post._id === postId 
-          ? { ...post, likes: (post.likes || 0) + 1, isLiked: true }
-          : post
+      // Optimistically update UI - toggle like state
+      setPosts(posts.map(p => 
+        p._id === postId 
+          ? { 
+              ...p, 
+              likes: isCurrentlyLiked ? Math.max(0, (p.likes || 1) - 1) : (p.likes || 0) + 1, 
+              isLiked: !isCurrentlyLiked 
+            }
+          : p
       ));
     } catch (error) {
       console.error("Failed to like post:", error);
       toast.error("Failed to like post");
+    }
+  };
+
+  const handleComment = (postId) => {
+    setCommentingPost(postId);
+    setCommentText('');
+  };
+
+  const handleSubmitComment = async (postId) => {
+    if (!commentText.trim()) return;
+    
+    try {
+      // TODO: Implement comment submission to backend
+      console.log('Submitting comment:', commentText, 'for post:', postId);
+      
+      // Optimistically update UI
+      setPosts(posts.map(post => 
+        post._id === postId 
+          ? { 
+              ...post, 
+              comments: [...(post.comments || []), {
+                _id: Date.now().toString(),
+                content: commentText,
+                author: { username: 'You', fullName: 'You' },
+                createdAt: new Date().toISOString()
+              }]
+            }
+          : post
+      ));
+      
+      setCommentText('');
+      setCommentingPost(null);
+      toast.success('Comment added!');
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      toast.error('Failed to add comment');
     }
   };
 
@@ -220,7 +267,7 @@ const ModernFeed = () => {
 
   const filteredPosts = selectedCategory === 'all' 
     ? posts 
-    : posts.filter(post => post.category === selectedCategory);
+    : posts.filter(post => post.category === selectedCategory || !post.category);
 
   return (
     <div className="min-h-screen bg-background">
@@ -437,7 +484,12 @@ const ModernFeed = () => {
                         <Heart className={`h-4 w-4 ${post.isLiked ? 'text-red-500 fill-current' : ''}`} />
                         <span>{post.likes || 0}</span>
                       </Button>
-                      <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex items-center space-x-2"
+                        onClick={() => handleComment(post._id)}
+                      >
                         <MessageCircle className="h-4 w-4" />
                         <span>{post.comments?.length || 0}</span>
                       </Button>
@@ -446,6 +498,29 @@ const ModernFeed = () => {
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </div>
+                  
+                  {/* Comment Input */}
+                  {commentingPost === post._id && (
+                    <div className="pt-3 border-t border-border">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          placeholder="Add a comment..."
+                          className="flex-1 px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment(post._id)}
+                        />
+                        <Button 
+                          size="sm"
+                          onClick={() => handleSubmitComment(post._id)}
+                          disabled={!commentText.trim()}
+                        >
+                          Post
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

@@ -99,25 +99,7 @@ const ModernSplash = () => {
           </div>
         </div>
 
-        {/* Clean Footer CTA */}
-        <div className="mt-20 lg:mt-32 text-center space-y-6">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              variant="modern" 
-              size="lg"
-              onClick={() => navigate("/register")}
-            >
-              Create Account
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={() => navigate("/login")}
-            >
-              Sign In
-            </Button>
-          </div>
-        </div>
+
       </main>
     </div>
   )
