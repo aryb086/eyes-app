@@ -37,10 +37,10 @@ router.post(
 // @access  Private
 router.get('/me', auth.protect, authController.getMe);
 
-// @route   GET /api/auth/logout
+// @route   POST /api/auth/logout
 // @desc    Log user out / clear cookie
 // @access  Private
-router.get('/logout', auth.protect, authController.logout);
+router.post('/logout', auth.protect, authController.logout);
 
 // @route   PUT /api/auth/updatedetails
 // @desc    Update user details
