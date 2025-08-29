@@ -87,11 +87,15 @@ export const apiRequest = async (endpoint, options = {}) => {
   
   const defaultOptions = {
     headers: {
-      'Content-Type': 'application/json',
       ...options.headers,
     },
     credentials: 'include', // Include cookies for authentication
   };
+
+  // Only set Content-Type for non-FormData requests
+  if (!(options.body instanceof FormData)) {
+    defaultOptions.headers['Content-Type'] = 'application/json';
+  }
 
   // Add auth token if available
   const token = localStorage.getItem('authToken');
@@ -139,20 +143,24 @@ export const api = {
     apiRequest(endpoint, { ...options, method: 'GET' }),
   
   // POST request
-  post: (endpoint, data, options = {}) => 
-    apiRequest(endpoint, { 
+  post: (endpoint, data, options = {}) => {
+    const body = data instanceof FormData ? data : JSON.stringify(data);
+    return apiRequest(endpoint, { 
       ...options, 
       method: 'POST', 
-      body: JSON.stringify(data) 
-    }),
+      body
+    });
+  },
   
   // PUT request
-  put: (endpoint, data, options = {}) => 
-    apiRequest(endpoint, { 
+  put: (endpoint, data, options = {}) => {
+    const body = data instanceof FormData ? data : JSON.stringify(data);
+    return apiRequest(endpoint, { 
       ...options, 
       method: 'PUT', 
-      body: JSON.stringify(data) 
-    }),
+      body
+    });
+  },
   
   // DELETE request
   delete: (endpoint, options = {}) => 

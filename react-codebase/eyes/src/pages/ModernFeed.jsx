@@ -162,31 +162,41 @@ const ModernFeed = () => {
         }
       };
 
-      // Handle image upload if present
-      if (newPost.image) {
-        const formData = new FormData();
-        formData.append('image', newPost.image);
-        Object.keys(postData).forEach(key => {
-          formData.append(key, typeof postData[key] === 'object' ? JSON.stringify(postData[key]) : postData[key]);
-        });
-        
-        // Send via WebSocket if connected, otherwise fallback to REST API
-        if (isConnected) {
-          sendPost(postData);
-          toast.success("Post sent in real-time!");
+      // Always create post in backend first, then notify WebSocket
+      try {
+        if (newPost.image) {
+          const formData = new FormData();
+          formData.append('image', newPost.image);
+          Object.keys(postData).forEach(key => {
+            formData.append(key, typeof postData[key] === 'object' ? JSON.stringify(postData[key]) : postData[key]);
+          });
+          
+          const createdPost = await postService.createPost(formData);
+          console.log('Post created in backend:', createdPost);
+          
+          // Notify WebSocket after successful backend creation
+          if (isConnected) {
+            sendPost(createdPost);
+            toast.success("Post created and shared in real-time!");
+          } else {
+            toast.success("Post created successfully!");
+          }
         } else {
-          await postService.createPost(formData);
-          toast.success("Post created successfully!");
+          const createdPost = await postService.createPost(postData);
+          console.log('Post created in backend:', createdPost);
+          
+          // Notify WebSocket after successful backend creation
+          if (isConnected) {
+            sendPost(createdPost);
+            toast.success("Post created and shared in real-time!");
+          } else {
+            toast.success("Post created successfully!");
+          }
         }
-      } else {
-        // Send via WebSocket if connected, otherwise fallback to REST API
-        if (isConnected) {
-          sendPost(postData);
-          toast.success("Post sent in real-time!");
-        } else {
-          await postService.createPost(postData);
-          toast.success("Post created successfully!");
-        }
+      } catch (error) {
+        console.error("Backend post creation failed:", error);
+        toast.error("Failed to create post in backend");
+        return;
       }
       
       // Reset form
