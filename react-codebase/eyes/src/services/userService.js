@@ -5,9 +5,9 @@ const API_URL = `${getApiUrl()}/users`;
 
 const getAuthHeader = () => ({
   headers: {
-    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+  },
 });
 
 const getCurrentUser = async () => {

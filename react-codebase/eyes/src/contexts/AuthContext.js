@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   const getCurrentUser = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       if (token) {
         // You might want to validate the token with the server here
         const user = authService.getCurrentUser();
