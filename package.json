@@ -12,7 +12,13 @@
     "node": "18.x",
     "npm": "9.x"
   },
-  "keywords": ["eyes", "app", "fullstack", "react", "node"],
+  "keywords": [
+    "eyes",
+    "app",
+    "fullstack",
+    "react",
+    "node"
+  ],
   "author": "Aryan Bansal",
   "license": "ISC",
   "dependencies": {
@@ -36,6 +42,7 @@
     "nodemailer-stub-transport": "^1.1.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.18.3",
     "xss-clean": "^0.1.4"
   }
 }
