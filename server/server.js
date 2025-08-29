@@ -174,16 +174,16 @@ const PORT = process.env.PORT || config.port || 5000;
 const HOST = '0.0.0.0'; // Listen on all network interfaces
 // Start the server
 server.listen(PORT, HOST, () => {
-  logger.info(`Server running in ${config.env} mode on ${HOST}:${PORT}`);
-  logger.info(`MongoDB URI: ${config.mongoose.url}`);
-  logger.info(`CORS enabled for all origins`);
+  console.log(`Server running in ${config.env} mode on ${HOST}:${PORT}`);
+  console.log(`MongoDB URI: ${config.mongoose.url}`);
+  console.log(`CORS enabled for all origins`);
 });
 
 // Handle SIGTERM for graceful shutdown
 process.on('SIGTERM', () => {
-  logger.info('SIGTERM RECEIVED. Shutting down gracefully');
+  console.log('SIGTERM RECEIVED. Shutting down gracefully');
   server.close(() => {
-    logger.info('Process terminated!');
+    console.log('Process terminated!');
   });
 });
 
