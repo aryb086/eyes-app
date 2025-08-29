@@ -28,10 +28,10 @@ const { errorResponse } = require('./utils/apiUtils');
 const { setSecurityHeaders, preventHttpParamPollution, sanitizeData, apiLimiter, authLimiter } = require('./middlewares/security.middleware');
 
 // Import routes
-const authRoutes = require('./routes/auth.routes');
-const userRoutes = require('./routes/user.routes');
-const postRoutes = require('./routes/post.routes');
-const commentRoutes = require('./routes/comment.routes');
+// const authRoutes = require('./routes/auth.routes');
+// const userRoutes = require('./routes/user.routes');
+// const postRoutes = require('./routes/post.routes');
+// const commentRoutes = require('./routes/comment.routes');
 
 // Initialize Express app
 const app = express();
@@ -109,10 +109,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // }
 
 // Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/posts', postRoutes);
-app.use('/api/v1/comments', commentRoutes);
+// app.use('/api/v1/auth', authRoutes);
+// app.use('/api/v1/users', userRoutes);
+// app.use('/api/v1/posts', postRoutes);
+// app.use('/api/v1/comments', commentRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
