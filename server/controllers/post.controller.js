@@ -352,3 +352,134 @@ exports.getFeedPosts = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Get posts by location (city and/or neighborhood)
+// @route   GET /api/posts/location
+// @access  Public
+exports.getPostsByLocation = async (req, res, next) => {
+  try {
+    const { city, neighborhood, limit = 20, page = 1 } = req.query;
+    
+    // Build query based on location parameters
+    const query = {};
+    if (city) query.city = city;
+    if (neighborhood) query.neighborhood = neighborhood;
+    
+    // Pagination
+    const skip = (page - 1) * limit;
+    
+    const posts = await Post.find(query)
+      .populate({
+        path: 'author',
+        select: 'username fullName profilePicture'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await Post.countDocuments(query);
+    
+    res.status(200).json({
+      success: true,
+      count: posts.length,
+      total,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / limit)
+      },
+      posts: posts
+    });
+  } catch (err) {
+    console.error('Error in getPostsByLocation:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch posts by location',
+      error: err.message
+    });
+  }
+};
+
+// @desc    Get posts by city
+// @route   GET /api/posts/city/:city
+// @access  Public
+exports.getPostsByCity = async (req, res, next) => {
+  try {
+    const { city } = req.params;
+    const { limit = 20, page = 1 } = req.query;
+    
+    const skip = (page - 1) * limit;
+    
+    const posts = await Post.find({ city })
+      .populate({
+        path: 'author',
+        select: 'username fullName profilePicture'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await Post.countDocuments({ city });
+    
+    res.status(200).json({
+      success: true,
+      count: posts.length,
+      total,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / limit)
+      },
+      posts: posts
+    });
+  } catch (err) {
+    console.error('Error in getPostsByCity:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch posts by city',
+      error: err.message
+    });
+  }
+};
+
+// @desc    Get posts by neighborhood
+// @route   GET /api/posts/neighborhood/:neighborhood
+// @access  Public
+exports.getPostsByNeighborhood = async (req, res, next) => {
+  try {
+    const { neighborhood } = req.params;
+    const { limit = 20, page = 1 } = req.query;
+    
+    const skip = (page - 1) * limit;
+    
+    const posts = await Post.find({ neighborhood })
+      .populate({
+        path: 'author',
+        select: 'username fullName profilePicture'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await Post.countDocuments({ neighborhood });
+    
+    res.status(200).json({
+      success: true,
+      count: posts.length,
+      total,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / limit)
+      },
+      posts: posts
+    });
+  } catch (err) {
+    console.error('Error in getPostsByNeighborhood:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch posts by neighborhood',
+      error: err.message
+    });
+  }
+};
