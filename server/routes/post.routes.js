@@ -9,6 +9,11 @@ router.get('/', postController.getPosts);
 router.get('/:id', postController.getPost);
 router.get('/user/:userId', postController.getPostsByUser);
 
+// Location-based post routes
+router.get('/location', postController.getPostsByLocation);
+router.get('/city/:city', postController.getPostsByCity);
+router.get('/neighborhood/:neighborhood', postController.getPostsByNeighborhood);
+
 // Protected routes
 router.use(auth.protect);
 

@@ -97,6 +97,7 @@ exports.createPost = async (req, res, next) => {
     const postData = {
       ...req.body,
       author: req.user.id,
+      city: req.body.city || user.city,
       cityId: req.body.cityId || user.cityId,
       stateCode: req.body.stateCode || user.stateCode,
       neighborhood: req.body.neighborhood || user.neighborhood
