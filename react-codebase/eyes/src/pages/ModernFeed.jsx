@@ -29,7 +29,6 @@ const ModernFeed = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPost, setNewPost] = useState({ 
-    title: "", 
     content: "", 
     category: "general",
     image: null 
@@ -97,7 +96,7 @@ const ModernFeed = () => {
     e.preventDefault();
     
     // Validate required fields
-    if (!newPost.title.trim() || !newPost.content.trim()) {
+    if (!newPost.content.trim()) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -131,11 +130,13 @@ const ModernFeed = () => {
 
     try {
       const postData = {
-        title: newPost.title,
         content: newPost.content,
         category: newPost.category,
         city: userLocation.city,
         neighborhood: userLocation.neighborhood,
+        cityId: userLocation.city,
+        stateCode: "Demo State",
+        scope: "neighborhood",
         location: {
           type: "Point",
           coordinates: userLocation.coordinates || [0, 0]
@@ -170,7 +171,7 @@ const ModernFeed = () => {
       }
       
       // Reset form
-      setNewPost({ title: "", content: "", category: "general", image: null });
+              setNewPost({ content: "", category: "general", image: null });
       setImagePreview(null);
       setShowCreateModal(false);
       
@@ -382,14 +383,18 @@ const ModernFeed = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
-                      </div>
+                      <img
+                        src={post.author?.avatar || post.author?.profilePicture || 'https://randomuser.me/api/portraits/lego/1.jpg'}
+                        alt={post.author?.fullName || post.author?.username}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
                       <div>
-                        <p className="font-medium">Anonymous User</p>
+                        <p className="font-medium">{post.author?.fullName || post.author?.username}</p>
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           <span>{post.neighborhood}, {post.city}</span>
+                          <span>•</span>
+                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
@@ -465,15 +470,7 @@ const ModernFeed = () => {
               </div>
               
               <form onSubmit={handleCreatePost} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Title *</label>
-                  <Input
-                    value={newPost.title}
-                    onChange={(e) => setNewPost({...newPost, title: e.target.value})}
-                    placeholder="Post title"
-                    required
-                  />
-                </div>
+
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">Content *</label>
