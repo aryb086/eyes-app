@@ -1,127 +1,7 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import locationService from '../services/locationService';
 
 const LocationContext = createContext();
-
-export const LocationProvider = ({ children }) => {
-  const [stateCode, setStateCode] = useState('');
-  const [cityId, setCityId] = useState('');
-  const [neighborhood, setNeighborhood] = useState('');
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [neighborhoods, setNeighborhoods] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load initial location data
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        // Load states
-        const statesData = [
-          { code: 'WA', name: 'Washington' },
-          { code: 'CA', name: 'California' },
-          { code: 'NY', name: 'New York' },
-          { code: 'TX', name: 'Texas' },
-          { code: 'IL', name: 'Illinois' }
-        ];
-        setStates(statesData);
-        
-        // Load user's saved location or use default
-        const userLocation = localStorage.getItem('userLocation') ? 
-          JSON.parse(localStorage.getItem('userLocation')) : 
-          { stateCode: 'WA', cityId: 'seattle' };
-        setStateCode(userLocation.stateCode);
-        
-        // Load cities for the user's state
-        const citiesData = locationService.getCities().map(cityName => ({
-          id: cityName.toLowerCase().replace(/\s+/g, '-'),
-          name: cityName
-        }));
-        setCities(citiesData);
-        
-        // Set city and load neighborhoods
-        if (userLocation.cityId) {
-          setCityId(userLocation.cityId);
-          const neighborhoodsData = locationService.getNeighborhoods(
-            userLocation.cityId === 'seattle' ? 'Seattle' : 'Seattle'
-          );
-          setNeighborhoods(neighborhoodsData);
-          
-          // Set neighborhood if available
-          if (userLocation.neighborhood) {
-            setNeighborhood(userLocation.neighborhood);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading location data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadInitialData();
-  }, []);
-
-  // Update cities when state changes
-  const handleStateChange = (newStateCode) => {
-    setStateCode(newStateCode);
-    const newCities = locationService.getCities().map(cityName => ({
-      id: cityName.toLowerCase().replace(/\s+/g, '-'),
-      name: cityName
-    }));
-    setCities(newCities);
-    
-    // Reset city and neighborhood when state changes
-    setCityId('');
-    setNeighborhood('');
-    setNeighborhoods([]);
-  };
-
-  // Update neighborhoods when city changes
-  const handleCityChange = (newCityId) => {
-    setCityId(newCityId);
-    const cityName = cities.find(c => c.id === newCityId)?.name || 'Seattle';
-    const newNeighborhoods = locationService.getNeighborhoods(cityName);
-    setNeighborhoods(newNeighborhoods);
-    
-    // Reset neighborhood when city changes
-    setNeighborhood('');
-  };
-
-  // Save the current location
-  const saveUserLocation = () => {
-    if (stateCode && cityId) {
-      const location = { stateCode, cityId };
-      if (neighborhood) {
-        location.neighborhood = neighborhood;
-      }
-      localStorage.setItem('userLocation', JSON.stringify(location));
-      return true;
-    }
-    return false;
-  };
-
-  return (
-    <LocationContext.Provider
-      value={{
-        stateCode,
-        cityId,
-        neighborhood,
-        states,
-        cities,
-        neighborhoods,
-        isLoading,
-        setStateCode: handleStateChange,
-        setCityId: handleCityChange,
-        setNeighborhood,
-        saveUserLocation,
-        getCurrentLocation: () => ({ stateCode, cityId, neighborhood })
-      }}
-    >
-      {children}
-    </LocationContext.Provider>
-  );
-};
 
 export const useLocation = () => {
   const context = useContext(LocationContext);
@@ -129,4 +9,180 @@ export const useLocation = () => {
     throw new Error('useLocation must be used within a LocationProvider');
   }
   return context;
+};
+
+export const LocationProvider = ({ children }) => {
+  const [userLocation, setUserLocation] = useState(null);
+  const [cities, setCities] = useState([]);
+  const [neighborhoods, setNeighborhoods] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Load initial location data
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Load user's saved location from localStorage
+      const savedLocation = localStorage.getItem('userLocation');
+      if (savedLocation) {
+        const parsedLocation = JSON.parse(savedLocation);
+        setUserLocation(parsedLocation);
+        
+        // Load cities and neighborhoods for the user's location
+        if (parsedLocation.city) {
+          await loadCities();
+          if (parsedLocation.neighborhood) {
+            await loadNeighborhoods(parsedLocation.city);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading location data:', error);
+      setError('Failed to load location data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load cities (this will be empty initially until users start registering)
+  const loadCities = async () => {
+    try {
+      const response = await locationService.getCities();
+      if (response.cities) {
+        setCities(response.cities);
+      } else {
+        setCities([]);
+      }
+    } catch (error) {
+      console.error('Failed to load cities:', error);
+      setCities([]);
+    }
+  };
+
+  // Load neighborhoods for a specific city
+  const loadNeighborhoods = async (cityName) => {
+    try {
+      const response = await locationService.getNeighborhoods({ city: cityName });
+      if (response.neighborhoods) {
+        setNeighborhoods(response.neighborhoods);
+      } else {
+        setNeighborhoods([]);
+      }
+    } catch (error) {
+      console.error('Failed to load neighborhoods:', error);
+      setNeighborhoods([]);
+    }
+  };
+
+  // Set user location from address (creates city and neighborhood dynamically)
+  const setLocationFromAddress = async (address) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const locationData = await locationService.setLocationFromAddress(address);
+      
+      if (locationData.success) {
+        const newLocation = {
+          city: locationData.city,
+          cityId: locationData.cityId,
+          neighborhood: locationData.neighborhood,
+          neighborhoodId: locationData.neighborhoodId,
+          coordinates: locationData.coordinates,
+          address: address
+        };
+        
+        setUserLocation(newLocation);
+        localStorage.setItem('userLocation', JSON.stringify(newLocation));
+        
+        // Refresh cities and neighborhoods
+        await loadCities();
+        await loadNeighborhoods(newLocation.city);
+        
+        return { success: true, location: newLocation };
+      } else {
+        throw new Error(locationData.message || 'Failed to set location');
+      }
+    } catch (error) {
+      console.error('Error setting location from address:', error);
+      setError(error.message);
+      return { success: false, error: error.message };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Set location manually (for testing or admin purposes)
+  const setLocationManually = (city, neighborhood, coordinates = null) => {
+    const newLocation = {
+      city,
+      neighborhood,
+      coordinates: coordinates || [0, 0]
+    };
+    
+    setUserLocation(newLocation);
+    localStorage.setItem('userLocation', JSON.stringify(newLocation));
+    
+    // Refresh cities and neighborhoods
+    loadCities();
+    loadNeighborhoods(city);
+  };
+
+  // Clear user location
+  const clearLocation = () => {
+    setUserLocation(null);
+    setCities([]);
+    setNeighborhoods([]);
+    localStorage.removeItem('userLocation');
+  };
+
+  // Get nearby users
+  const getNearbyUsers = async (radius = 5) => {
+    try {
+      const response = await locationService.getNearbyUsers(radius);
+      return response;
+    } catch (error) {
+      console.error('Failed to get nearby users:', error);
+      throw error;
+    }
+  };
+
+  // Validate address format
+  const validateAddress = (address) => {
+    return locationService.validateAddress(address);
+  };
+
+  return (
+    <LocationContext.Provider
+      value={{
+        // State
+        userLocation,
+        cities,
+        neighborhoods,
+        isLoading,
+        error,
+        
+        // Methods
+        setLocationFromAddress,
+        setLocationManually,
+        clearLocation,
+        getNearbyUsers,
+        validateAddress,
+        loadCities,
+        loadNeighborhoods,
+        
+        // Legacy compatibility (deprecated)
+        getCurrentLocation: () => userLocation,
+        saveUserLocation: () => userLocation ? true : false
+      }}
+    >
+      {children}
+    </LocationContext.Provider>
+  );
 };

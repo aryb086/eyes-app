@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../components/ui/Card";
 import { Input } from "../components/ui/NewInput";
-import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical, Filter, Image as ImageIcon } from "lucide-react";
+import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical, Image as ImageIcon } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation } from "../contexts/LocationContext";
 import { useRealtime } from "../contexts/RealtimeContext";
@@ -20,8 +19,6 @@ const POST_CATEGORIES = [
 ];
 
 const ModernFeed = () => {
-  const navigate = useNavigate();
-  const { logout: authLogout } = useAuth();
   const { userLocation } = useLocation();
   const { isConnected, sendPost, sendLike } = useRealtime();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -311,7 +308,7 @@ const ModernFeed = () => {
                     <div className="rounded-lg overflow-hidden">
                       <img 
                         src={post.image} 
-                        alt="Post image" 
+                        alt="Post content" 
                         className="w-full h-64 object-cover"
                       />
                     </div>

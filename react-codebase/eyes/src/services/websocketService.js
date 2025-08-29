@@ -9,10 +9,17 @@ class WebSocketService {
     this.connectionStatus = 'disconnected';
     this.fallbackMode = false;
     this.messageQueue = [];
+    this.manuallyDisconnected = false; // Added for manual disconnect tracking
   }
 
   // Connect to WebSocket server with fallback
   async connect(url = null) {
+    // Prevent multiple simultaneous connection attempts
+    if (this.connectionStatus === 'connecting') {
+      console.log('WebSocket connection already in progress, skipping...');
+      return;
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       console.log('WebSocket already connected');
       return;
@@ -42,12 +49,12 @@ class WebSocketService {
     try {
       this.connectionStatus = 'connecting';
       this.emit('statusChanged', this.connectionStatus);
-      
+
       console.log(`Attempting to connect to WebSocket server: ${wsUrl}`);
-      
+
       // Try WebSocket connection
       this.ws = new WebSocket(wsUrl);
-      
+
       // Set connection timeout
       const connectionTimeout = setTimeout(() => {
         if (this.connectionStatus === 'connecting') {
@@ -55,7 +62,7 @@ class WebSocketService {
           this.enableFallbackMode();
         }
       }, 5000);
-      
+
       this.ws.onopen = () => {
         clearTimeout(connectionTimeout);
         console.log('✅ WebSocket connected successfully to:', wsUrl);
@@ -66,7 +73,7 @@ class WebSocketService {
         this.fallbackMode = false;
         this.emit('connected');
         this.emit('statusChanged', this.connectionStatus);
-        
+
         // Process queued messages
         this.processMessageQueue();
       };
@@ -88,9 +95,9 @@ class WebSocketService {
         this.connectionStatus = 'disconnected';
         this.emit('disconnected', event);
         this.emit('statusChanged', this.connectionStatus);
-        
-        // Attempt to reconnect if not a clean close
-        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+
+        // Only attempt to reconnect if not a clean close and not manually disconnected
+        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts && !this.manuallyDisconnected) {
           this.scheduleReconnect();
         } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
           console.log('Max reconnection attempts reached, switching to fallback mode');
@@ -104,7 +111,7 @@ class WebSocketService {
         this.emit('error', error);
         this.connectionStatus = 'error';
         this.emit('statusChanged', this.connectionStatus);
-        
+
         // Switch to fallback mode on error
         setTimeout(() => {
           if (this.connectionStatus === 'error') {
@@ -144,13 +151,18 @@ class WebSocketService {
 
   // Schedule reconnection attempt
   scheduleReconnect() {
+    if (this.connectionStatus === 'connecting') {
+      console.log('Connection already in progress, skipping reconnection');
+      return;
+    }
+
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
     
     console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
     
     setTimeout(() => {
-      if (!this.isConnected && this.connectionStatus !== 'fallback') {
+      if (!this.isConnected && this.connectionStatus !== 'fallback' && !this.manuallyDisconnected) {
         this.connect();
       }
     }, delay);
@@ -256,6 +268,7 @@ class WebSocketService {
 
   // Disconnect WebSocket
   disconnect() {
+    this.manuallyDisconnected = true;
     if (this.ws) {
       this.ws.close(1000, 'Client disconnecting');
       this.ws = null;
