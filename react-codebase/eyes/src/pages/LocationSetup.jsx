@@ -43,9 +43,29 @@ const LocationSetup = function() {
     setDetectedLocation(null);
 
     try {
-      const location = await locationService.autoDetectLocation();
-      setDetectedLocation(location);
-      setStep(2);
+      // Use browser geolocation API instead of non-existent autoDetectLocation
+      if (navigator.geolocation) {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+          });
+        });
+
+        // Create a mock location based on coordinates
+        const location = {
+          city: 'Auto-detected City',
+          neighborhood: 'Auto-detected Neighborhood',
+          coordinates: [position.coords.latitude, position.coords.longitude],
+          address: 'Auto-detected from GPS'
+        };
+
+        setDetectedLocation(location);
+        setStep(2);
+      } else {
+        throw new Error('Geolocation not supported by this browser');
+      }
     } catch (err) {
       setError("Could not detect your location. Please enter your address manually.");
       console.error("Auto-detection error:", err);
