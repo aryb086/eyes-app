@@ -32,6 +32,7 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const postRoutes = require('./routes/post.routes');
 const commentRoutes = require('./routes/comment.routes');
+const locationRoutes = require('./routes/location.routes');
 
 // Initialize Express app
 const app = express();
@@ -100,6 +101,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/posts', postRoutes);
 app.use('/api/v1/comments', commentRoutes);
+app.use('/api/v1/location', locationRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
