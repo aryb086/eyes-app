@@ -6,13 +6,15 @@ const auth = require('../middlewares/auth.middleware');
 
 // Public routes
 router.get('/', postController.getPosts);
-router.get('/:id', postController.getPost);
-router.get('/user/:userId', postController.getPostsByUser);
 
-// Location-based post routes
+// Location-based post routes (must come before /:id route)
 router.get('/location', postController.getPostsByLocation);
 router.get('/city/:city', postController.getPostsByCity);
 router.get('/neighborhood/:neighborhood', postController.getPostsByNeighborhood);
+
+// Parameterized routes (must come after specific routes)
+router.get('/:id', postController.getPost);
+router.get('/user/:userId', postController.getPostsByUser);
 
 // Protected routes
 router.use(auth.protect);
