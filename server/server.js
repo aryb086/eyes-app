@@ -133,8 +133,8 @@ app.use((err, req, res, next) => {
   err.status = err.status || 'error';
 
   // Log the error
-  logger.error(`${err.statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
-  logger.error(err.stack);
+  console.log(`${err.statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
+  console.log(err.stack);
 
   // Send error response
   if (process.env.NODE_ENV === 'development') {
