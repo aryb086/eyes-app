@@ -136,7 +136,7 @@ class LocationService {
       const geocodeResult = await this.geocodeAddress(address);
       
       if (geocodeResult.neighborhood) {
-        return {
+  return {
           _id: `${geocodeResult.neighborhood.toLowerCase().replace(/\s+/g, '-')}-1`,
           name: geocodeResult.neighborhood,
           cityId: cityId,
@@ -192,7 +192,7 @@ class LocationService {
       const neighborhood = await this.getOrCreateNeighborhood(address, city._id);
       
       // Return location data
-      return {
+  return {
         success: true,
         city: city.name,
         cityId: city._id,

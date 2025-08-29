@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Input } from '../components/ui/NewInput';
-import { Eye, MapPin, User, Settings, ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { Eye, MapPin, User, Settings, ArrowLeft, Save, Trash2, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { toast } from 'react-hot-toast';
@@ -62,6 +62,23 @@ const UserSettings = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleAutoDetect = async () => {
+    setIsLoading(true);
+    try {
+      const result = await setLocationFromAddress('auto-detect');
+      if (result.success) {
+        toast.success('Location auto-detected successfully!');
+        setShowLocationForm(false);
+      } else {
+        toast.error(result.error || 'Failed to auto-detect location');
+      }
+    } catch (error) {
+      toast.error('Failed to auto-detect location');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Get user data with fallbacks
@@ -150,109 +167,100 @@ const UserSettings = () => {
             </CardContent>
           </Card>
 
-          {/* Location Section */}
+          {/* Location Management Section */}
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold flex items-center space-x-2">
                 <MapPin className="h-5 w-5" />
-                <span>Location Settings</span>
+                <span>Location Management</span>
               </h3>
             </CardHeader>
             <CardContent className="space-y-4">
-              {userLocation ? (
+              {showLocationForm ? (
                 <div className="space-y-4">
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">Current Location</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span><strong>Address:</strong> {userLocation.address}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span><strong>City:</strong> {userLocation.city}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span><strong>Neighborhood:</strong> {userLocation.neighborhood}</span>
-                      </div>
-                      {userLocation.coordinates && (
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span><strong>Coordinates:</strong> {userLocation.coordinates.join(', ')}</span>
-                        </div>
-                      )}
-                    </div>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                    <Input
+                      type="text"
+                      placeholder="Enter your full address (e.g., 123 Main St, Seattle, WA)"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="pl-10"
+                      disabled={isLoading}
+                    />
                   </div>
                   
                   <div className="flex space-x-3">
                     <Button
-                      variant="outline"
-                      onClick={() => setShowLocationForm(true)}
+                      onClick={handleSetLocation}
+                      disabled={isLoading || !address.trim()}
+                      className="flex-1"
                     >
-                      <Save className="h-4 w-4 mr-2" />
-                      Update Location
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <MapPin className="h-4 w-4 mr-2" />
+                      )}
+                      Set Location
                     </Button>
+                    
                     <Button
                       variant="outline"
-                      onClick={handleClearLocation}
-                      className="text-red-600 hover:text-red-700"
+                      onClick={handleAutoDetect}
+                      disabled={isLoading}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Clear Location
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <MapPin className="h-4 w-4 mr-2" />
+                      )}
+                      Auto-Detect
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h4 className="text-lg font-medium mb-2">No Location Set</h4>
-                  <p className="text-muted-foreground mb-4">
-                    Set your location to see posts from your area and create location-based posts.
-                  </p>
-                  <Button onClick={() => setShowLocationForm(true)}>
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Set Location
+                  
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowLocationForm(false)}
+                    className="w-full"
+                  >
+                    Cancel
                   </Button>
                 </div>
-              )}
-
-              {/* Location Form */}
-              {showLocationForm && (
-                <div className="border-t pt-6">
-                  <h4 className="font-medium mb-4">Set New Location</h4>
-                  <form onSubmit={handleSetLocation} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Full Address *
-                      </label>
-                      <Input
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        placeholder="Enter your full address (e.g., 123 Main St, Seattle, WA)"
-                        required
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Include street number, street name, city, and state
-                      </p>
+              ) : (
+                <div className="space-y-4">
+                  {userLocation ? (
+                    <div className="p-4 bg-muted rounded-lg">
+                      <h4 className="font-semibold mb-2">Current Location</h4>
+                      <div className="space-y-2 text-sm">
+                        <p><strong>City:</strong> {userLocation.city}</p>
+                        <p><strong>Neighborhood:</strong> {userLocation.neighborhood}</p>
+                        <p><strong>Address:</strong> {userLocation.address}</p>
+                      </div>
                     </div>
+                  ) : (
+                    <p className="text-muted-foreground">No location set</p>
+                  )}
+                  
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={() => setShowLocationForm(true)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {userLocation ? 'Update Location' : 'Set Location'}
+                    </Button>
                     
-                    <div className="flex space-x-3">
+                    {userLocation && (
                       <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowLocationForm(false)}
+                        onClick={handleClearLocation}
+                        variant="destructive"
+                        size="sm"
                       >
-                        Cancel
+                        Clear
                       </Button>
-                      <Button
-                        type="submit"
-                        disabled={isLoading || !address.trim()}
-                      >
-                        {isLoading ? 'Setting...' : 'Set Location'}
-                      </Button>
-                    </div>
-                  </form>
+                    )}
+                  </div>
                 </div>
               )}
             </CardContent>

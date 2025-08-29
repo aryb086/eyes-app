@@ -102,9 +102,13 @@ const ModernFeed = () => {
       return;
     }
 
-    // Validate location is required
+    // Check if user has location set
     if (!userLocation?.city || !userLocation?.neighborhood) {
       toast.error("Please set your location before posting");
+      // Show option to navigate to location setup
+      if (confirm("Would you like to set your location now?")) {
+        navigate('/location-setup');
+      }
       return;
     }
 
