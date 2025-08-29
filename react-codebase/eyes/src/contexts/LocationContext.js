@@ -182,6 +182,17 @@ export const LocationProvider = ({ children }) => {
     return locationService.validateAddress(address);
   };
 
+  const hasLocation = () => {
+    return userLocation !== null;
+  };
+
+  const getLocationDisplay = () => {
+    if (!userLocation) {
+      return 'No location set';
+    }
+    return `${userLocation.city}, ${userLocation.neighborhood}`;
+  };
+
   return (
     <LocationContext.Provider
       value={{
@@ -200,6 +211,8 @@ export const LocationProvider = ({ children }) => {
         validateAddress,
         loadCities,
         loadNeighborhoods,
+        hasLocation,
+        getLocationDisplay,
         
         // Legacy compatibility (deprecated)
         getCurrentLocation: () => userLocation,

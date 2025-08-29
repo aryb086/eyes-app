@@ -64,6 +64,11 @@ const UserSettings = () => {
     navigate('/login');
   };
 
+  // Get user data with fallbacks
+  const userEmail = currentUser?.email || 'Not available';
+  const userId = currentUser?.id || currentUser?._id || 'Not available';
+  const userName = currentUser?.name || currentUser?.username || 'User';
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -104,9 +109,17 @@ const UserSettings = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium mb-2">Name</label>
+                  <Input
+                    value={userName}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium mb-2">Email</label>
                   <Input
-                    value={currentUser?.email || 'Not available'}
+                    value={userEmail}
                     disabled
                     className="bg-muted"
                   />
@@ -114,9 +127,17 @@ const UserSettings = () => {
                 <div>
                   <label className="block text-sm font-medium mb-2">User ID</label>
                   <Input
-                    value={currentUser?.id || 'Not available'}
+                    value={userId}
                     disabled
                     className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Account Status</label>
+                  <Input
+                    value="Active"
+                    disabled
+                    className="bg-green-100 text-green-800"
                   />
                 </div>
               </div>
