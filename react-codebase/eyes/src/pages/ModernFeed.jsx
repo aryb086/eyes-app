@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../components/ui/Card";
 import { Input } from "../components/ui/NewInput";
-import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical, Image as ImageIcon } from "lucide-react";
+import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical, Image as ImageIcon, Home, Settings } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation } from "../contexts/LocationContext";
 import { useRealtime } from "../contexts/RealtimeContext";
@@ -19,6 +20,8 @@ const POST_CATEGORIES = [
 ];
 
 const ModernFeed = () => {
+  const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
   const { userLocation } = useLocation();
   const { isConnected, sendPost, sendLike } = useRealtime();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -181,6 +184,11 @@ const ModernFeed = () => {
     }
   };
 
+  const handleLogout = () => {
+    authLogout();
+    navigate('/login');
+  };
+
   const filteredPosts = selectedCategory === 'all' 
     ? posts 
     : posts.filter(post => post.category === selectedCategory);
@@ -214,15 +222,88 @@ const ModernFeed = () => {
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">New Post</span>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/user-settings')}
+              title="User Settings"
+            >
               <User className="h-5 w-5" />
             </Button>
           </div>
         </div>
       </header>
 
+      {/* Sidebar - Always visible on desktop */}
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-background border-r transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-4 border-b lg:hidden">
+            <div className="flex items-center space-x-2">
+              <Eye className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-bold">EYES</h1>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="flex-1 p-4 space-y-4">
+            <nav className="space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/feed')}
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Home
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/city-feed')}
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                City
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/neighborhood-feed')}
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                Neighborhood
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => navigate('/user-settings')}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </nav>
+          </div>
+
+          <div className="p-4 border-t">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </aside>
+
       {/* Category Filter */}
-      <div className="bg-card border-b border-border">
+      <div className="bg-card border-b border-border lg:ml-64">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center space-x-2 overflow-x-auto">
             <span className="text-sm font-medium text-muted-foreground">Filter:</span>
@@ -249,96 +330,98 @@ const ModernFeed = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading posts...</p>
-          </div>
-        ) : filteredPosts.length === 0 ? (
-          <div className="text-center py-12">
-            <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
-            <p className="text-muted-foreground mb-6">
-              Be the first to share something in your area!
-            </p>
-            <Button onClick={() => setShowCreateModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Post
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {filteredPosts.map((post) => (
-              <Card key={post._id} className="overflow-hidden">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Anonymous User</p>
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{post.neighborhood}, {post.city}</span>
+      <div className="lg:ml-64">
+        <div className="container mx-auto px-4 py-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading posts...</p>
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="text-center py-12">
+              <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
+              <p className="text-muted-foreground mb-6">
+                Be the first to share something in your area!
+              </p>
+              <Button onClick={() => setShowCreateModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Post
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {filteredPosts.map((post) => (
+                <Card key={post._id} className="overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Anonymous User</p>
+                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4" />
+                            <span>{post.neighborhood}, {post.city}</span>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          POST_CATEGORIES.find(c => c.id === post.category)?.color || 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {POST_CATEGORIES.find(c => c.id === post.category)?.label || 'General'}
+                        </span>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        POST_CATEGORIES.find(c => c.id === post.category)?.color || 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {POST_CATEGORIES.find(c => c.id === post.category)?.label || 'General'}
-                      </span>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
+                      <p className="text-muted-foreground">{post.content}</p>
+                    </div>
+                    
+                    {post.image && (
+                      <div className="rounded-lg overflow-hidden">
+                        <img 
+                          src={post.image} 
+                          alt="Post content" 
+                          className="w-full h-64 object-cover"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div className="flex items-center space-x-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleLike(post._id)}
+                          className="flex items-center space-x-2"
+                        >
+                          <Heart className={`h-4 w-4 ${post.isLiked ? 'text-red-500 fill-current' : ''}`} />
+                          <span>{post.likes || 0}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                          <MessageCircle className="h-4 w-4" />
+                          <span>{post.comments?.length || 0}</span>
+                        </Button>
+                      </div>
                       <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
+                        <Share2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
-                    <p className="text-muted-foreground">{post.content}</p>
-                  </div>
-                  
-                  {post.image && (
-                    <div className="rounded-lg overflow-hidden">
-                      <img 
-                        src={post.image} 
-                        alt="Post content" 
-                        className="w-full h-64 object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <div className="flex items-center space-x-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleLike(post._id)}
-                        className="flex items-center space-x-2"
-                      >
-                        <Heart className={`h-4 w-4 ${post.isLiked ? 'text-red-500 fill-current' : ''}`} />
-                        <span>{post.likes || 0}</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                        <MessageCircle className="h-4 w-4" />
-                        <span>{post.comments?.length || 0}</span>
-                      </Button>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Create Post Modal */}

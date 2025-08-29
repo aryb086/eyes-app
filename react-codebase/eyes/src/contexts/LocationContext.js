@@ -61,6 +61,7 @@ export const LocationProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to load cities:', error);
+      // Fallback: if backend doesn't have cities endpoint, use empty array
       setCities([]);
     }
   };
@@ -76,6 +77,7 @@ export const LocationProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to load neighborhoods:', error);
+      // Fallback: if backend doesn't have neighborhoods endpoint, use empty array
       setNeighborhoods([]);
     }
   };
@@ -86,6 +88,27 @@ export const LocationProvider = ({ children }) => {
       setIsLoading(true);
       setError(null);
       
+      // For now, create a mock location since backend endpoints don't exist yet
+      // This will be replaced with actual API calls when backend is ready
+      const mockLocation = {
+        city: 'Demo City',
+        cityId: 'demo-city-1',
+        neighborhood: 'Demo Neighborhood',
+        neighborhoodId: 'demo-neighborhood-1',
+        coordinates: [47.6062, -122.3321], // Seattle coordinates as example
+        address: address
+      };
+      
+      setUserLocation(mockLocation);
+      localStorage.setItem('userLocation', JSON.stringify(mockLocation));
+      
+      // Refresh cities and neighborhoods
+      await loadCities();
+      await loadNeighborhoods(mockLocation.city);
+      
+      return { success: true, location: mockLocation };
+      
+      /* TODO: Uncomment when backend location endpoints are ready
       const locationData = await locationService.setLocationFromAddress(address);
       
       if (locationData.success) {
@@ -109,6 +132,7 @@ export const LocationProvider = ({ children }) => {
       } else {
         throw new Error(locationData.message || 'Failed to set location');
       }
+      */
     } catch (error) {
       console.error('Error setting location from address:', error);
       setError(error.message);
