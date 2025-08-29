@@ -105,10 +105,27 @@ const ModernFeed = () => {
     // Check if user has location set
     if (!userLocation?.city || !userLocation?.neighborhood) {
       toast.error("Please set your location before posting");
-      // Show option to navigate to location setup
-      if (confirm("Would you like to set your location now?")) {
-        navigate('/location-setup');
-      }
+      // Show toast with navigation option
+      toast((t) => (
+        <div className="flex items-center space-x-2">
+          <span>Would you like to set your location now?</span>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              navigate('/location-setup');
+            }}
+            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+          >
+            Yes
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+          >
+            No
+          </button>
+        </div>
+      ), { duration: 5000 });
       return;
     }
 
