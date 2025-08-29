@@ -44,7 +44,7 @@ exports.getPost = async (req, res, next) => {
     const post = await Post.findById(req.params.id)
       .populate({
         path: 'author',
-        select: 'username fullName profilePicture'
+        select: 'username fullName profilePicture avatar'
       })
       .populate({
         path: 'comments',
@@ -53,17 +53,17 @@ exports.getPost = async (req, res, next) => {
         populate: [
           {
             path: 'author',
-            select: 'username fullName profilePicture'
+            select: 'username fullName profilePicture avatar'
           },
           {
             path: 'likes',
-            select: 'username fullName profilePicture'
+            select: 'username fullName profilePicture avatar'
           }
         ]
       })
       .populate({
         path: 'likes',
-        select: 'username fullName profilePicture'
+        select: 'username fullName profilePicture avatar'
       });
 
     if (!post) {
@@ -163,7 +163,7 @@ exports.updatePost = async (req, res, next) => {
       runValidators: true
     }).populate({
       path: 'author',
-      select: 'username fullName profilePicture'
+      select: 'username fullName profilePicture avatar'
     });
 
     res.status(200).json({
@@ -413,7 +413,7 @@ exports.getPostsByCity = async (req, res, next) => {
     const posts = await Post.find({ city })
       .populate({
         path: 'author',
-        select: 'username fullName profilePicture'
+        select: 'username fullName profilePicture avatar'
       })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -455,7 +455,7 @@ exports.getPostsByNeighborhood = async (req, res, next) => {
     const posts = await Post.find({ neighborhood })
       .populate({
         path: 'author',
-        select: 'username fullName profilePicture'
+        select: 'username fullName profilePicture avatar'
       })
       .sort({ createdAt: -1 })
       .skip(skip)

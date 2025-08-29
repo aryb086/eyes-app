@@ -31,7 +31,8 @@ exports.register = async (req, res, next) => {
       username,
       email,
       password,
-      fullName: fullName || username
+      fullName: fullName || username,
+      avatar: 'https://randomuser.me/api/portraits/lego/1.jpg' // Add default avatar
     });
 
     // Create token
