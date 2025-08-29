@@ -23,7 +23,7 @@ const ModernFeed = () => {
   const navigate = useNavigate();
   const { logout: authLogout } = useAuth();
   const { userLocation } = useLocation();
-  const { isConnected, sendPost, sendLike } = useRealtime();
+  const { isConnected, sendPost, sendLike, registerPostCreatedCallback } = useRealtime();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +43,22 @@ const ModernFeed = () => {
   useEffect(() => {
     fetchPosts();
   }, [selectedCategory]);
+
+  // Register callback for real-time post creation
+  useEffect(() => {
+    registerPostCreatedCallback((newPost) => {
+      // Add the new post to the beginning of the posts array
+      setPosts(prevPosts => [newPost, ...prevPosts]);
+      toast.success('New post created!');
+    });
+  }, [registerPostCreatedCallback]);
+
+  // Fetch posts when userLocation changes
+  useEffect(() => {
+    if (userLocation) {
+      fetchPosts();
+    }
+  }, [userLocation]);
 
   const fetchPosts = async () => {
     try {
@@ -231,9 +247,28 @@ const ModernFeed = () => {
         }
       }
       
-      // Refresh posts after a delay to ensure backend sync
-      setTimeout(() => {
-        fetchPosts();
+      // Refresh posts after a delay to ensure backend sync, but preserve local changes
+      setTimeout(async () => {
+        try {
+          const response = await postService.getPostsByLocation({
+            city: userLocation.city,
+            neighborhood: userLocation.neighborhood,
+            limit: 20
+          });
+          
+          // Merge backend data with local optimistic changes
+          const updatedPosts = response.posts.map(backendPost => {
+            const localPost = posts.find(p => p._id === backendPost._id);
+            if (localPost && localPost.isLiked !== undefined) {
+              return { ...backendPost, isLiked: localPost.isLiked };
+            }
+            return backendPost;
+          });
+          
+          setPosts(updatedPosts);
+        } catch (error) {
+          console.error('Failed to refresh posts:', error);
+        }
       }, 2000);
     } catch (error) {
       console.error("Failed to like post:", error);
@@ -289,9 +324,28 @@ const ModernFeed = () => {
       setCommentingPost(null);
       toast.success('Comment added!');
       
-      // Refresh posts to ensure backend sync
-      setTimeout(() => {
-        fetchPosts();
+      // Refresh posts to ensure backend sync, but preserve local changes
+      setTimeout(async () => {
+        try {
+          const response = await postService.getPostsByLocation({
+            city: userLocation.city,
+            neighborhood: userLocation.neighborhood,
+            limit: 20
+          });
+          
+          // Merge backend data with local optimistic changes
+          const updatedPosts = response.posts.map(backendPost => {
+            const localPost = posts.find(p => p._id === backendPost._id);
+            if (localPost && localPost.comments) {
+              return { ...backendPost, comments: localPost.comments };
+            }
+            return backendPost;
+          });
+          
+          setPosts(updatedPosts);
+        } catch (error) {
+          console.error('Failed to refresh posts:', error);
+        }
       }, 1000);
     } catch (error) {
       console.error('Failed to add comment:', error);

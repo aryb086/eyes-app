@@ -20,6 +20,7 @@ export const RealtimeProvider = ({ children }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [realTimePosts, setRealTimePosts] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [postCreatedCallback, setPostCreatedCallback] = useState(null);
 
   // Connect to WebSocket when authenticated
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,7 +128,12 @@ export const RealtimeProvider = ({ children }) => {
 
   const handlePostCreated = useCallback((post) => {
     setRealTimePosts(prev => [post, ...prev]);
-  }, []);
+    
+    // Call the registered callback to update the main feed
+    if (postCreatedCallback) {
+      postCreatedCallback(post);
+    }
+  }, [postCreatedCallback]);
 
   const handlePostUpdated = useCallback((updatedPost) => {
     setRealTimePosts(prev => 
@@ -188,6 +194,11 @@ export const RealtimeProvider = ({ children }) => {
     }
   }, [isConnected]);
 
+  // Register callback for post creation
+  const registerPostCreatedCallback = useCallback((callback) => {
+    setPostCreatedCallback(() => callback);
+  }, []);
+
   // Clear notifications
   const clearNotifications = useCallback(() => {
     setNotifications([]);
@@ -223,6 +234,7 @@ export const RealtimeProvider = ({ children }) => {
     sendPost,
     sendLike,
     sendComment,
+    registerPostCreatedCallback,
     clearNotifications,
     getConnectionInfo,
     
