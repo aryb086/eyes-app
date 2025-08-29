@@ -96,14 +96,14 @@ const PostCard = ({
       <div className={styles.postHeader}>
         <div className={styles.userInfo}>
           <img 
-            src={post.user.avatar} 
-            alt={post.user.name} 
+            src={post.author?.avatar || post.author?.profilePicture || 'https://randomuser.me/api/portraits/lego/1.jpg'} 
+            alt={post.author?.fullName || post.author?.username} 
             className={styles.avatar}
           />
           <div>
-            <h3 className={styles.userName}>{post.user.name}</h3>
+            <h3 className={styles.userName}>{post.author?.fullName || post.author?.username}</h3>
             <div className={styles.postMeta}>
-              <span className={styles.userLocation}>{post.user.location}</span>
+                              <span className={styles.userLocation}>{post.neighborhood}, {post.city}</span>
               <span className={styles.dotSeparator}>•</span>
               <span className={styles.timestamp}>{post.timestamp}</span>
               {post.type === 'alert' && (
