@@ -169,7 +169,7 @@ process.on('uncaughtException', (err) => {
 });
 
 // Start server
-const PORT = config.port || 5001;
+const PORT = process.env.PORT || config.port || 5000;
 const HOST = '0.0.0.0'; // Listen on all network interfaces
 // Start the server
 server.listen(PORT, HOST, () => {
