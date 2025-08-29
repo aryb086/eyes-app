@@ -22,7 +22,7 @@ const cors = require('cors');
 
 // Import utilities
 const logger = require('./utils/logger');
-const { errorResponse } = require('./utils/apiUtils');
+// const { errorResponse } = require('./utils/apiUtils');
 
 // Import security middleware
 const { setSecurityHeaders, preventHttpParamPollution, sanitizeData, apiLimiter, authLimiter } = require('./middlewares/security.middleware');
@@ -51,25 +51,12 @@ connectDB().catch(err => {
 logger.info('connectDB() called, continuing with server startup...');
 
 // Set security HTTP headers
-app.use(setSecurityHeaders);
+// app.use(setSecurityHeaders);
 
 // Development logging with detailed request info
 if (config.env === 'development') {
-  // Detailed request logging middleware
-  app.use((req, res, next) => {
-    logger.http(`Incoming Request: ${req.method} ${req.originalUrl}`, {
-      headers: req.headers,
-      body: req.body,
-      query: req.query,
-      params: req.params,
-      ip: req.ip,
-      timestamp: new Date().toISOString()
-    });
-    next();
-  });
-  
   // Standard HTTP logging
-  app.use(morgan('dev', { stream: { write: message => logger.http(message.trim()) } }));
+  app.use(morgan('dev'));
 }
 
 // Body parser, reading data from body into req.body
@@ -78,16 +65,16 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
 // Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+// app.use(mongoSanitize());
 
 // Data sanitization against XSS
-app.use(xss());
+// app.use(xss());
 
 // Prevent parameter pollution
-app.use(preventHttpParamPollution);
+// app.use(preventHttpParamPollution);
 
 // Sanitize request data
-app.use(sanitizeData);
+// app.use(sanitizeData);
 
 // Enable CORS for all origins (temporarily for testing)
 console.log('Enabling CORS for all origins');
