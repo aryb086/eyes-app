@@ -33,6 +33,12 @@ const postSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  category: {
+    type: String,
+    enum: ['general', 'news', 'events', 'safety', 'community', 'business'],
+    default: 'general',
+    required: true
+  },
   tags: [{
     type: String,
     trim: true
