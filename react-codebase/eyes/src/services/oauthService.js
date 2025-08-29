@@ -1,7 +1,22 @@
 import axios from 'axios';
 import { oauthConfig } from '../config/oauth';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
+// Get API URL based on environment
+const getApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    // For production builds, use the production URL directly
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
+    }
+    // For local development, use localhost
+    return 'http://localhost:5000/api';
+  }
+  
+  // Fallback for SSR or other environments
+  return process.env?.REACT_APP_API_BASE_URL || 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
+};
+
+const API_BASE_URL = getApiUrl();
 
 export const oauthService = {
   // Google OAuth

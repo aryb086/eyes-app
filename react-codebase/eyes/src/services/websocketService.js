@@ -13,23 +13,32 @@ class WebSocketService {
 
   // Connect to WebSocket server with fallback
   async connect(url = null) {
-    // Detect environment and use appropriate WebSocket URL
-    let wsUrl;
-    if (url) {
-      wsUrl = url;
-    } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      // Development environment
-      wsUrl = 'ws://localhost:3001';
-    } else {
-      // Production environment - use environment variable
-      wsUrl = process.env.REACT_APP_WEBSOCKET_URL || 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connected');
+      return;
     }
-    
+
+    // Determine WebSocket URL based on environment
+    let wsUrl;
+    if (typeof window !== 'undefined') {
+      // For production builds, use the production WebSocket URL directly
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        wsUrl = 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
+      } else {
+        // For local development, use localhost
+        wsUrl = 'ws://localhost:3001';
+      }
+    } else {
+      // Fallback for SSR or other environments
+      wsUrl = process.env?.REACT_APP_WEBSOCKET_URL || 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
+    }
+
     console.log('WebSocket URL determined:', {
       hostname: window.location.hostname,
       isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
       wsUrl: wsUrl
     });
+
     try {
       this.connectionStatus = 'connecting';
       this.emit('statusChanged', this.connectionStatus);
@@ -109,6 +118,19 @@ class WebSocketService {
       this.emit('error', error);
       this.enableFallbackMode();
     }
+  }
+
+  // Setup event handlers for WebSocket
+  setupEventHandlers() {
+    // This method is not needed anymore as we set up handlers directly in connect()
+    // Keeping it for compatibility
+  }
+
+  // Handle errors
+  handleError(error) {
+    console.error('WebSocket service error:', error);
+    this.emit('error', error);
+    this.enableFallbackMode();
   }
 
   // Enable fallback mode when WebSocket fails
