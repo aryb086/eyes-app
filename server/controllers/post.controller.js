@@ -74,6 +74,16 @@ exports.getPosts = async (req, res, next) => {
     // Executing query
     const posts = await query;
 
+    // Handle case where posts might be undefined
+    if (!posts) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        pagination: {},
+        data: []
+      });
+    }
+
     // Pagination result
     const pagination = {};
 
