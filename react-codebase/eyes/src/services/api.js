@@ -3,11 +3,6 @@
 
 // Get API URL from environment variable or use production URL as fallback
 const getApiUrl = () => {
-  // Always use environment variable if available
-  if (process.env.REACT_APP_API_BASE_URL) {
-    return process.env.REACT_APP_API_BASE_URL;
-  }
-  
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
     // For production builds, use the production URL directly
@@ -18,11 +13,19 @@ const getApiUrl = () => {
     return 'http://localhost:5000/api/v1';
   }
   
-  // Fallback for SSR or other environments
-  return 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
+  // Use environment variable if available, otherwise fallback to production
+  return process.env.REACT_APP_API_BASE_URL || 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
 };
 
 export const API_URL = getApiUrl();
+
+// Debug logging for API URL
+if (typeof window !== 'undefined') {
+  console.log('🔧 API Configuration Debug:');
+  console.log('  - process.env.REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
+  console.log('  - window.location.hostname:', window.location.hostname);
+  console.log('  - Final API_URL:', API_URL);
+}
 
 // API endpoints
 export const ENDPOINTS = {
@@ -75,6 +78,12 @@ export const ENDPOINTS = {
 // API utility functions
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_URL}${endpoint}`;
+  
+  // Debug logging for API requests
+  console.log('🌐 API Request Debug:');
+  console.log('  - API_URL:', API_URL);
+  console.log('  - endpoint:', endpoint);
+  console.log('  - Full URL:', url);
   
   const defaultOptions = {
     headers: {
