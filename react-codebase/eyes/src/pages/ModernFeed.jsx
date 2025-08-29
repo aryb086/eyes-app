@@ -408,7 +408,6 @@ const ModernFeed = () => {
                 
                 <CardContent className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
                     <p className="text-muted-foreground">{post.content}</p>
                   </div>
                   
