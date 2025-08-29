@@ -5,15 +5,15 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Input } from '../components/ui/NewInput';
 import { Eye, Menu, MapPin, User, Search, Plus, Heart, MessageCircle, Bookmark, MoreHorizontal, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import locationService from '../services/locationService';
+import { useLocation } from '../contexts/LocationContext';
 
 const CityFeed = function() {
   const [posts, setPosts] = useState([]);
   const [selectedCity, setSelectedCity] = useState("Seattle");
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { cities, neighborhoods, userLocation } = useLocation();
   
   useEffect(() => {
     setPosts([
@@ -65,7 +65,9 @@ const CityFeed = function() {
     ]);
   }, []);
   
-  const cities = locationService.getCities();
+  // Use cities from context with fallback
+  const availableCities = cities && cities.length > 0 ? cities : ['Seattle', 'Demo City'];
+  
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const handleLogout = () => {
     logout();
@@ -198,7 +200,7 @@ const CityFeed = function() {
                   onChange={(e) => setSelectedCity(e.target.value)}
                   className="appearance-none bg-background border border-input rounded-lg px-4 py-2 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 >
-                  {cities.map((city) => (
+                  {availableCities.map((city) => (
                     <option key={city} value={city}>{city}</option>
                   ))}
                 </select>

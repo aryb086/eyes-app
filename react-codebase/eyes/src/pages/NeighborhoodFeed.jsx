@@ -5,28 +5,27 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Input } from '../components/ui/NewInput';
 import { Eye, Menu, MapPin, User, Search, Plus, Heart, MessageCircle, Bookmark, MoreHorizontal, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import locationService from '../services/locationService';
+import { useLocation } from '../contexts/LocationContext';
 
 const NeighborhoodFeed = function() {
   const [posts, setPosts] = useState([]);
-  const [selectedCity, setSelectedCity] = useState("Seattle");
-  const [selectedNeighborhood, setSelectedNeighborhood] = useState("Downtown");
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState("Capitol Hill");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { cities, neighborhoods, userLocation } = useLocation();
   
   useEffect(() => {
     setPosts([
       {
         id: 1,
         image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-        caption: "Beautiful church architecture in the heart of downtown. The Gothic revival style never gets old!",
+        caption: "Beautiful church architecture in downtown Seattle. The Gothic revival style never gets old!",
         user: {
           name: "Josigh-Let",
           avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
           username: "johndoe",
-          location: "Downtown"
+          location: "Downtown Seattle"
         },
         likes: 42,
         comments: 8,
@@ -36,38 +35,39 @@ const NeighborhoodFeed = function() {
       {
         id: 2,
         image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop",
-        caption: "New art installation in the downtown plaza. Love the modern vibe!",
+        caption: "Sunset view from the waterfront. Perfect evening for a walk!",
         user: {
-          name: "Emma Davis",
-          avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-          username: "emmadavis",
-          location: "Downtown"
+          name: "Sarah Chen",
+          avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
+          username: "janesmith",
+          location: "Harbor District"
         },
-        likes: 34,
-        comments: 6,
-        saved: 2,
+        likes: 67,
+        comments: 12,
+        saved: 3,
         timestamp: "4 hours ago"
       },
       {
         id: 3,
         image: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=800&h=600&fit=crop",
-        caption: "Downtown farmers market is back! Fresh produce and local crafts every Saturday.",
+        caption: "New coffee shop opened in Capitol Hill. Great atmosphere and amazing coffee!",
         user: {
-          name: "Alex Rivera",
+          name: "Mike Johnson",
           avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-          username: "alexrivera",
-          location: "Downtown"
+          username: "mikejohnson",
+          location: "Capitol Hill"
         },
-        likes: 67,
-        comments: 12,
-        saved: 5,
+        likes: 89,
+        comments: 15,
+        saved: 7,
         timestamp: "6 hours ago"
       }
     ]);
   }, []);
   
-  const cities = locationService.getCities();
-  const neighborhoods = selectedCity ? locationService.getNeighborhoods(selectedCity) : [];
+  // Use neighborhoods from context with fallback
+  const availableNeighborhoods = neighborhoods && neighborhoods.length > 0 ? neighborhoods : ['Capitol Hill', 'Downtown Seattle', 'Demo Neighborhood'];
+  
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const handleLogout = () => {
     logout();
@@ -197,34 +197,17 @@ const NeighborhoodFeed = function() {
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <select
-                    value={selectedCity}
-                    onChange={(e) => {
-                      setSelectedCity(e.target.value);
-                      setSelectedNeighborhood("");
-                    }}
+                    value={selectedNeighborhood}
+                    onChange={(e) => setSelectedNeighborhood(e.target.value)}
                     className="appearance-none bg-background border border-input rounded-lg px-4 py-2 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
-                    {cities.map((city) => (
-                      <option key={city} value={city}>{city}</option>
+                    <option value="">Select Neighborhood</option>
+                    {availableNeighborhoods.map((neighborhood) => (
+                      <option key={neighborhood} value={neighborhood}>{neighborhood}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 </div>
-                {selectedCity && (
-                  <div className="relative">
-                    <select
-                      value={selectedNeighborhood}
-                      onChange={(e) => setSelectedNeighborhood(e.target.value)}
-                      className="appearance-none bg-background border border-input rounded-lg px-4 py-2 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                    >
-                      <option value="">Select Neighborhood</option>
-                      {neighborhoods.map((neighborhood) => (
-                        <option key={neighborhood} value={neighborhood}>{neighborhood}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  </div>
-                )}
               </div>
             </div>
             
