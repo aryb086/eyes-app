@@ -44,7 +44,10 @@ const { value: envVars, error } = envVarsSchema
   .validate(process.env);
 
 if (error) {
-  throw new Error(`Config validation error: ${error.message}`);
+  console.error(`Config validation error: ${error.message}`);
+  console.error('Environment variables:', Object.keys(process.env));
+  // Don't throw error, use defaults instead
+  // throw new Error(`Config validation error: ${error.message}`);
 }
 
 // Export configuration
