@@ -134,8 +134,53 @@ exports.createPost = async (req, res, next) => {
     console.log('Request body:', req.body);
     console.log('User ID:', req.user.id);
     console.log('Headers:', req.headers);
-    console.log('File:', req.file);
     
+    // Check if this is a multipart request (has image)
+    const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
+    
+    if (isMultipart) {
+      // Handle multipart request with multer
+      const multer = require('multer');
+      const upload = multer({
+        storage: multer.memoryStorage(),
+        limits: {
+          fileSize: 5 * 1024 * 1024, // 5MB limit
+        },
+        fileFilter: (req, file, cb) => {
+          // Accept images only
+          if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+          } else {
+            cb(new Error('Only image files are allowed!'), false);
+          }
+        }
+      });
+      
+      // Process the multipart request
+      return upload.single('image')(req, res, async (err) => {
+        if (err) {
+          console.error('Multer error:', err);
+          return res.status(400).json({
+            success: false,
+            message: err.message
+          });
+        }
+        
+        await processPostCreation(req, res, next);
+      });
+    } else {
+      // Handle regular JSON request
+      await processPostCreation(req, res, next);
+    }
+  } catch (err) {
+    console.error('Error creating post:', err);
+    next(err);
+  }
+};
+
+// Helper function to process post creation
+async function processPostCreation(req, res, next) {
+  try {
     // Add user and location data to req.body
     const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
     
@@ -183,10 +228,10 @@ exports.createPost = async (req, res, next) => {
       data: populatedPost
     });
   } catch (err) {
-    console.error('Error creating post:', err);
+    console.error('Error in processPostCreation:', err);
     next(err);
   }
-};
+}
 
 // @desc    Update post
 // @route   PUT /api/posts/:id

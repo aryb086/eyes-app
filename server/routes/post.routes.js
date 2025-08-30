@@ -41,7 +41,6 @@ router.use(auth.protect);
 // @access  Private
 router.post(
   '/',
-  upload.single('image'), // Handle single image upload
   [
     check('content', 'Content is required')
       .not()
