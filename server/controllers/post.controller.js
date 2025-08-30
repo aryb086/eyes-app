@@ -135,6 +135,8 @@ exports.createPost = async (req, res, next) => {
     console.log('User ID:', req.user.id);
     console.log('Headers:', req.headers);
     console.log('File:', req.file);
+    console.log('Files:', req.files);
+    console.log('Raw request:', req);
     
     // Add user and location data to req.body
     const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');

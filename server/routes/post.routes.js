@@ -52,6 +52,29 @@ router.post(
   postController.createPost
 );
 
+// @route   POST /api/posts/test-upload
+// @desc    Test endpoint for debugging file uploads
+// @access  Private
+router.post('/test-upload', auth.protect, upload.single('image'), (req, res) => {
+  console.log('=== TEST UPLOAD ENDPOINT ===');
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
+  console.log('File:', req.file);
+  console.log('Files:', req.files);
+  
+  res.json({
+    success: true,
+    message: 'Upload test successful',
+    body: req.body,
+    file: req.file ? {
+      fieldname: req.file.fieldname,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    } : null
+  });
+});
+
 // @route   PUT /api/posts/:id
 // @desc    Update a post
 // @access  Private
