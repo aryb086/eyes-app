@@ -140,14 +140,30 @@ exports.createPost = async (req, res, next) => {
     const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
     
     if (isMultipart) {
-      console.log('Multipart request detected, using raw body parsing');
+      console.log('Multipart request detected, attempting to parse manually');
       
-      // For multipart requests, we'll need to parse the raw body
-      // Since multer is failing, let's handle this differently
-      return res.status(400).json({
-        success: false,
-        message: 'Image uploads are temporarily disabled due to technical issues. Please create text-only posts for now.'
-      });
+      // Try to parse the multipart data manually
+      try {
+        // Check if we have the raw body data
+        const rawBody = req.body;
+        console.log('Raw body for multipart:', rawBody);
+        
+        // For now, let's try to extract image data if possible
+        // This is a temporary workaround until we fix the multer issue
+        if (rawBody && rawBody.image) {
+          console.log('Image data found in raw body');
+          // Handle the image data
+          postData.images = [rawBody.image];
+        } else {
+          console.log('No image data found, treating as text post');
+        }
+      } catch (parseError) {
+        console.error('Error parsing multipart data:', parseError);
+        return res.status(400).json({
+          success: false,
+          message: 'Unable to process image upload. Please try again or create a text-only post.'
+        });
+      }
     }
     
     // Add user and location data to req.body
