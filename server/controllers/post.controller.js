@@ -134,9 +134,21 @@ exports.createPost = async (req, res, next) => {
     console.log('Request body:', req.body);
     console.log('User ID:', req.user.id);
     console.log('Headers:', req.headers);
-    console.log('File:', req.file);
-    console.log('Files:', req.files);
-    console.log('Raw request:', req);
+    console.log('Content-Type:', req.headers['content-type']);
+    
+    // Check if this is a multipart request
+    const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
+    
+    if (isMultipart) {
+      console.log('Multipart request detected, using raw body parsing');
+      
+      // For multipart requests, we'll need to parse the raw body
+      // Since multer is failing, let's handle this differently
+      return res.status(400).json({
+        success: false,
+        message: 'Image uploads are temporarily disabled due to technical issues. Please create text-only posts for now.'
+      });
+    }
     
     // Add user and location data to req.body
     const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
@@ -149,15 +161,8 @@ exports.createPost = async (req, res, next) => {
       stateCode: req.body.stateCode || user.stateCode,
       neighborhood: req.body.neighborhood || user.neighborhood
     };
-
-    // Handle image upload if present
-    if (req.file) {
-      // For now, store the base64 data URL (in production, you'd upload to cloud storage)
-      const imageUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-      postData.images = [imageUrl];
-    }
     
-    console.log('Post data with location and image:', postData);
+    console.log('Post data with location:', postData);
 
     const post = await Post.create(postData);
     console.log('Post created successfully:', post);
