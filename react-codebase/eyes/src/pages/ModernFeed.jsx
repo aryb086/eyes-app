@@ -167,9 +167,16 @@ const ModernFeed = () => {
         if (newPost.image) {
           const formData = new FormData();
           formData.append('image', newPost.image);
-          Object.keys(postData).forEach(key => {
-            formData.append(key, typeof postData[key] === 'object' ? JSON.stringify(postData[key]) : postData[key]);
-          });
+          
+          // Append each field individually to ensure proper FormData structure
+          formData.append('content', postData.content);
+          formData.append('category', postData.category);
+          formData.append('city', postData.city);
+          formData.append('neighborhood', postData.neighborhood);
+          formData.append('cityId', postData.cityId);
+          formData.append('stateCode', postData.stateCode);
+          formData.append('scope', postData.scope);
+          formData.append('location', JSON.stringify(postData.location));
           
           const createdPost = await postService.createPost(formData);
           console.log('Post created in backend:', createdPost);
