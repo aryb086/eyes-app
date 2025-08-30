@@ -135,35 +135,14 @@ exports.createPost = async (req, res, next) => {
     console.log('User ID:', req.user.id);
     console.log('Headers:', req.headers);
     console.log('Content-Type:', req.headers['content-type']);
+    console.log('File received:', req.file ? req.file.originalname : 'None');
     
-    // Check if this is a multipart request
-    const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
-    
-    if (isMultipart) {
-      console.log('Multipart request detected, attempting to parse manually');
-      
-      // Try to parse the multipart data manually
-      try {
-        // Check if we have the raw body data
-        const rawBody = req.body;
-        console.log('Raw body for multipart:', rawBody);
-        
-        // For now, let's try to extract image data if possible
-        // This is a temporary workaround until we fix the multer issue
-        if (rawBody && rawBody.image) {
-          console.log('Image data found in raw body');
-          // Handle the image data
-          postData.images = [rawBody.image];
-        } else {
-          console.log('No image data found, treating as text post');
-        }
-      } catch (parseError) {
-        console.error('Error parsing multipart data:', parseError);
-        return res.status(400).json({
-          success: false,
-          message: 'Unable to process image upload. Please try again or create a text-only post.'
-        });
-      }
+    // Handle image upload if present (multer should have processed this)
+    if (req.file) {
+      console.log('Image file received:', req.file.originalname);
+      // For now, store the base64 data URL (in production, you'd upload to cloud storage)
+      const imageUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      postData.images = [imageUrl];
     }
     
     // Add user and location data to req.body
