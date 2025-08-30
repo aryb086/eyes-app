@@ -68,3 +68,4 @@ export default App;
 // Trigger deployment
 // Trigger Vercel deployment
 // Trigger deployment
+// Trigger frontend redeployment
