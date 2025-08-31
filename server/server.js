@@ -65,6 +65,25 @@ if (config.env === 'development') {
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
+// Raw body parser for multipart requests (when multer is disabled)
+app.use('/api/v1/posts', (req, res, next) => {
+  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+    let data = '';
+    req.setEncoding('utf8');
+    
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    
+    req.on('end', () => {
+      req.body = data;
+      next();
+    });
+  } else {
+    next();
+  }
+});
+
 // Multer middleware for handling multipart/form-data (file uploads)
 // Moved to individual route files to avoid conflicts
 
