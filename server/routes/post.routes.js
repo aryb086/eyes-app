@@ -42,7 +42,7 @@ router.use(auth.protect);
 // @access  Private
 router.post(
   '/',
-  upload.single('image'), // Re-enable multer
+  // upload.single('image'), // Temporarily disable multer to debug boundary issue
   [
     check('content', 'Content is required')
       .not()
@@ -73,6 +73,27 @@ router.post('/test-upload', auth.protect, upload.single('image'), (req, res) => 
       mimetype: req.file.mimetype,
       size: req.file.size
     } : null
+  });
+});
+
+// @route   POST /api/posts/test-raw
+// @desc    Test endpoint for raw multipart requests (no middleware)
+// @access  Private
+router.post('/test-raw', auth.protect, (req, res) => {
+  console.log('=== RAW MULTIPART TEST ENDPOINT ===');
+  console.log('Headers:', req.headers);
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Body type:', typeof req.body);
+  console.log('Body length:', req.body ? req.body.length : 'N/A');
+  console.log('Body preview:', req.body ? req.body.substring(0, 500) + '...' : 'No body');
+  
+  res.json({
+    success: true,
+    message: 'Raw multipart test successful',
+    contentType: req.headers['content-type'],
+    bodyType: typeof req.body,
+    bodyLength: req.body ? req.body.length : 0,
+    bodyPreview: req.body ? req.body.substring(0, 200) : 'No body'
   });
 });
 

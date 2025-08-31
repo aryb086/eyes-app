@@ -175,6 +175,21 @@ exports.createPost = async (req, res, next) => {
     if (isMultipart) {
       console.log('Content-Type includes boundary:', req.headers['content-type'].includes('boundary'));
       console.log('Full Content-Type:', req.headers['content-type']);
+      
+      // === RAW MULTIPART HANDLING ===
+      console.log('=== 🔧 RAW MULTIPART HANDLING ===');
+      console.log('Raw body type:', typeof req.body);
+      console.log('Raw body length:', req.body ? req.body.length : 'N/A');
+      console.log('Raw body preview:', req.body ? req.body.substring(0, 200) + '...' : 'No body');
+      
+      // Try to extract fields from raw body
+      if (req.body && typeof req.body === 'string') {
+        console.log('Attempting to parse raw multipart body...');
+        // This is a simplified parser - just for debugging
+        const lines = req.body.split('\n');
+        console.log('Body lines count:', lines.length);
+        console.log('First few lines:', lines.slice(0, 5));
+      }
     }
     
     // === USER LOOKUP ANALYSIS ===
