@@ -182,13 +182,86 @@ exports.createPost = async (req, res, next) => {
       console.log('Raw body length:', req.body ? req.body.length : 'N/A');
       console.log('Raw body preview:', req.body ? req.body.substring(0, 200) + '...' : 'No body');
       
-      // Try to extract fields from raw body
+      // Parse raw multipart data into usable fields
       if (req.body && typeof req.body === 'string') {
-        console.log('Attempting to parse raw multipart body...');
-        // This is a simplified parser - just for debugging
-        const lines = req.body.split('\n');
-        console.log('Body lines count:', lines.length);
-        console.log('First few lines:', lines.slice(0, 5));
+        console.log('=== 🔍 PARSING RAW MULTIPART DATA ===');
+        
+        // Parse multipart boundary
+        const boundaryMatch = req.headers['content-type'].match(/boundary=(.+)$/);
+        const boundary = boundaryMatch ? boundaryMatch[1] : null;
+        console.log('Detected boundary:', boundary);
+        
+        if (boundary) {
+          // Split by boundary
+          const parts = req.body.split('--' + boundary);
+          console.log('Parts count:', parts.length);
+          
+          // Parse each part
+          const parsedFields = {};
+          const parsedFiles = {};
+          
+          parts.forEach((part, index) => {
+            if (index === 0 || index === parts.length - 1) return; // Skip first and last parts
+            
+            console.log(`\n--- Part ${index} ---`);
+            console.log('Part preview:', part.substring(0, 200) + '...');
+            
+            // Extract field name and value
+            const fieldMatch = part.match(/name="([^"]+)"/);
+            const filenameMatch = part.match(/filename="([^"]+)"/);
+            const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
+            
+            if (fieldMatch) {
+              const fieldName = fieldMatch[1];
+              console.log('Field name:', fieldName);
+              
+              if (filenameMatch) {
+                // This is a file
+                const filename = filenameMatch[1];
+                const contentType = contentTypeMatch ? contentTypeMatch[1] : 'application/octet-stream';
+                console.log('File detected:', filename, 'Type:', contentType);
+                
+                // Extract file content (everything after the headers)
+                const contentStart = part.indexOf('\r\n\r\n');
+                if (contentStart !== -1) {
+                  const fileContent = part.substring(contentStart + 4);
+                  parsedFiles[fieldName] = {
+                    filename,
+                    contentType,
+                    content: fileContent
+                  };
+                  console.log('File content length:', fileContent.length);
+                }
+              } else {
+                // This is a regular field
+                const valueStart = part.indexOf('\r\n\r\n');
+                if (valueStart !== -1) {
+                  const value = part.substring(valueStart + 4).trim();
+                  parsedFields[fieldName] = value;
+                  console.log('Field value:', value);
+                }
+              }
+            }
+          });
+          
+          console.log('\n=== 📊 PARSED DATA SUMMARY ===');
+          console.log('Parsed fields:', Object.keys(parsedFields));
+          console.log('Parsed files:', Object.keys(parsedFiles));
+          console.log('Content field:', parsedFields.content);
+          console.log('Image field:', parsedFiles.image ? 'Present' : 'Missing');
+          
+          // Use parsed data instead of req.body
+          req.body = parsedFields;
+          req.file = parsedFiles.image ? {
+            fieldname: 'image',
+            originalname: parsedFiles.image.filename,
+            mimetype: parsedFiles.image.contentType,
+            buffer: Buffer.from(parsedFiles.image.content, 'binary')
+          } : null;
+          
+          console.log('Updated req.body keys:', Object.keys(req.body));
+          console.log('Updated req.file:', req.file ? 'Present' : 'Missing');
+        }
       }
     }
     
