@@ -140,21 +140,28 @@ exports.createPost = async (req, res, next) => {
     const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
     
     if (isMultipart) {
-      console.log('Multipart request detected, using formidable parser');
+      console.log('Multipart request detected, using multer parser');
       
-      // Use formidable to parse multipart data
-      const formidable = require('formidable');
+      // Use multer to parse multipart data
+      const multer = require('multer');
+      const upload = multer({
+        storage: multer.memoryStorage(),
+        limits: {
+          fileSize: 5 * 1024 * 1024, // 5MB
+        },
+        fileFilter: (req, file, cb) => {
+          if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+          } else {
+            cb(new Error('Only image files are allowed!'), false);
+          }
+        }
+      }).single('image');
       
       return new Promise((resolve, reject) => {
-        const form = formidable({
-          maxFileSize: 5 * 1024 * 1024, // 5MB
-          keepExtensions: true,
-          multiples: false
-        });
-        
-        form.parse(req, async (err, fields, files) => {
+        upload(req, res, async (err) => {
           if (err) {
-            console.error('Formidable parsing error:', err);
+            console.error('Multer parsing error:', err);
             return res.status(400).json({
               success: false,
               message: 'Unable to process image upload. Please try again.',
@@ -162,37 +169,31 @@ exports.createPost = async (req, res, next) => {
             });
           }
           
-          console.log('Formidable parsed successfully');
-          console.log('Fields keys:', Object.keys(fields));
-          console.log('Files keys:', Object.keys(files));
-          
-          console.log('Parsed fields:', fields);
-          console.log('Parsed files:', files);
+          console.log('Multer parsed successfully');
+          console.log('Body keys:', Object.keys(req.body));
+          console.log('File:', req.file ? req.file.originalname : 'No file');
           
           try {
             // Add user and location data
             const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
             
             const postData = {
-              ...fields,
+              ...req.body,
               author: req.user.id,
-              city: fields.city || user.city,
-              cityId: fields.cityId || user.cityId,
-              stateCode: fields.stateCode || user.stateCode,
-              neighborhood: fields.neighborhood || user.neighborhood
+              city: req.body.city || user.city,
+              cityId: req.body.cityId || user.cityId,
+              stateCode: req.body.stateCode || user.stateCode,
+              neighborhood: req.body.neighborhood || user.neighborhood
             };
             
             // Handle image if present
-            if (files.image && files.image[0]) {
-              const file = files.image[0];
-              console.log('Image file received:', file.originalFilename);
+            if (req.file) {
+              console.log('Image file received:', req.file.originalname);
               
-              // Convert file to base64 for storage (temporary solution for Heroku)
-              const fs = require('fs');
+              // Convert file buffer to base64 for storage
               try {
-                const fileBuffer = fs.readFileSync(file.filepath);
-                const base64Image = fileBuffer.toString('base64');
-                const mimeType = file.mimetype || 'image/jpeg';
+                const base64Image = req.file.buffer.toString('base64');
+                const mimeType = req.file.mimetype || 'image/jpeg';
                 const dataUrl = `data:${mimeType};base64,${base64Image}`;
                 
                 postData.images = [dataUrl];
