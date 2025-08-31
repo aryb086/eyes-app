@@ -136,20 +136,26 @@ exports.createPost = async (req, res, next) => {
     console.log('Headers:', req.headers);
     console.log('Content-Type:', req.headers['content-type']);
     
-    // Multer middleware temporarily disabled for debugging
-    // We need to handle the raw request manually
+    // Multer middleware is now applied at the route level
+    // req.file and req.body are populated by multer
     
-    console.log('Request processed without multer middleware');
+    console.log('Request processed by multer middleware');
     console.log('Body keys:', Object.keys(req.body));
-    console.log('Raw body:', req.body);
+    console.log('Body values:', req.body);
+    console.log('File:', req.file ? req.file.originalname : 'No file');
     console.log('Content-Type:', req.headers['content-type']);
-    
-    // Check if this is a multipart request
-    const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
-    console.log('Is multipart:', isMultipart);
     
     // Add user and location data
     const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
+    
+    // Validate required fields
+    if (!req.body.content) {
+      console.error('Missing required field: content');
+      return res.status(400).json({
+        success: false,
+        message: 'Post content is required'
+      });
+    }
     
     const postData = {
       ...req.body,
@@ -160,9 +166,27 @@ exports.createPost = async (req, res, next) => {
       neighborhood: req.body.neighborhood || user.neighborhood
     };
     
-    // Image handling temporarily disabled for debugging
-    // We'll add it back once we see what's in the request
-    console.log('Image handling disabled for debugging');
+    // Log the final post data for debugging
+    console.log('Final post data:', postData);
+    
+    // Handle image if present
+    if (req.file) {
+      console.log('Image file received:', req.file.originalname);
+      
+      // Convert file buffer to base64 for storage
+      try {
+        const base64Image = req.file.buffer.toString('base64');
+        const mimeType = req.file.mimetype || 'image/jpeg';
+        const dataUrl = `data:${mimeType};base64,${base64Image}`;
+        
+        postData.images = [dataUrl];
+        console.log('Image converted to base64 successfully');
+      } catch (imageError) {
+        console.error('Error processing image:', imageError);
+        // Continue without image if processing fails
+        postData.images = [];
+      }
+    }
     
     console.log('Post data with location and image:', postData);
     

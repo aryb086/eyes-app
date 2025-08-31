@@ -42,7 +42,7 @@ router.use(auth.protect);
 // @access  Private
 router.post(
   '/',
-  // upload.single('image'), // Temporarily disable multer to debug
+  upload.single('image'), // Re-enable multer
   [
     check('content', 'Content is required')
       .not()
