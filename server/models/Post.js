@@ -35,7 +35,7 @@ const postSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['general', 'news', 'events', 'safety', 'community', 'business'],
+    enum: ['general', 'news', 'events', 'safety', 'community', 'business', 'infrastructure'],
     default: 'general',
     required: true
   },
