@@ -130,48 +130,135 @@ exports.getPost = async (req, res, next) => {
 // @access  Private
 exports.createPost = async (req, res, next) => {
   try {
-    console.log('=== CREATE POST REQUEST ===');
-    console.log('Request body:', req.body);
-    console.log('User ID:', req.user.id);
-    console.log('Headers:', req.headers);
+    console.log('=== 🚀 CREATE POST REQUEST START ===');
+    console.log('📅 Timestamp:', new Date().toISOString());
+    console.log('🔐 User ID:', req.user.id);
+    console.log('🔐 User object:', req.user);
+    console.log('📋 Request method:', req.method);
+    console.log('🌐 Request URL:', req.originalUrl);
+    console.log('📤 Request IP:', req.ip);
+    
+    // === HEADERS ANALYSIS ===
+    console.log('=== 📋 HEADERS ANALYSIS ===');
     console.log('Content-Type:', req.headers['content-type']);
+    console.log('Content-Length:', req.headers['content-length']);
+    console.log('User-Agent:', req.headers['user-agent']);
+    console.log('Authorization:', req.headers.authorization ? 'Present' : 'Missing');
+    console.log('All headers:', JSON.stringify(req.headers, null, 2));
     
-    // Multer middleware is now applied at the route level
-    // req.file and req.body are populated by multer
+    // === BODY ANALYSIS ===
+    console.log('=== 📦 BODY ANALYSIS ===');
+    console.log('Body type:', typeof req.body);
+    console.log('Body is array:', Array.isArray(req.body));
+    console.log('Body is null:', req.body === null);
+    console.log('Body is undefined:', req.body === undefined);
+    console.log('Body keys:', Object.keys(req.body || {}));
+    console.log('Body values:', JSON.stringify(req.body, null, 2));
+    console.log('Body stringified length:', JSON.stringify(req.body).length);
     
-    console.log('Request processed by multer middleware');
-    console.log('Body keys:', Object.keys(req.body));
-    console.log('Body values:', req.body);
-    console.log('File:', req.file ? req.file.originalname : 'No file');
-    console.log('Content-Type:', req.headers['content-type']);
+    // === MULTER ANALYSIS ===
+    console.log('=== 🖼️ MULTER ANALYSIS ===');
+    console.log('Multer file present:', !!req.file);
+    if (req.file) {
+      console.log('File fieldname:', req.file.fieldname);
+      console.log('File originalname:', req.file.originalname);
+      console.log('File mimetype:', req.file.mimetype);
+      console.log('File size:', req.file.size);
+      console.log('File buffer length:', req.file.buffer ? req.file.buffer.length : 'No buffer');
+      console.log('File encoding:', req.file.encoding);
+    }
     
-    // Add user and location data
+    // === MULTIPART ANALYSIS ===
+    console.log('=== 🔗 MULTIPART ANALYSIS ===');
+    const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
+    console.log('Is multipart request:', isMultipart);
+    if (isMultipart) {
+      console.log('Content-Type includes boundary:', req.headers['content-type'].includes('boundary'));
+      console.log('Full Content-Type:', req.headers['content-type']);
+    }
+    
+    // === USER LOOKUP ANALYSIS ===
+    console.log('=== 👤 USER LOOKUP ANALYSIS ===');
+    console.log('Looking up user with ID:', req.user.id);
+    
     const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
+    console.log('User lookup result:', user ? 'Success' : 'Failed');
+    if (user) {
+      console.log('User city:', user.city);
+      console.log('User cityId:', user.cityId);
+      console.log('User stateCode:', user.stateCode);
+      console.log('User neighborhood:', user.neighborhood);
+      console.log('User location:', user.location);
+    } else {
+      console.log('❌ USER NOT FOUND - This will cause validation errors!');
+    }
+    
+    // === FIELD VALIDATION ANALYSIS ===
+    console.log('=== ✅ FIELD VALIDATION ANALYSIS ===');
+    console.log('Content field present:', !!req.body.content);
+    console.log('Content field value:', req.body.content);
+    console.log('Content field type:', typeof req.body.content);
+    console.log('Content field length:', req.body.content ? req.body.content.length : 'N/A');
+    
+    console.log('City field present:', !!req.body.city);
+    console.log('City field value:', req.body.city);
+    console.log('CityId field present:', !!req.body.cityId);
+    console.log('CityId field value:', req.body.cityId);
+    console.log('StateCode field present:', !!req.body.stateCode);
+    console.log('StateCode field value:', req.body.stateCode);
+    console.log('Neighborhood field present:', !!req.body.neighborhood);
+    console.log('Neighborhood field value:', req.body.neighborhood);
     
     // Validate required fields
     if (!req.body.content) {
-      console.error('Missing required field: content');
+      console.error('❌ VALIDATION FAILED: Missing required field: content');
+      console.error('Available fields:', Object.keys(req.body));
       return res.status(400).json({
         success: false,
-        message: 'Post content is required'
+        message: 'Post content is required',
+        debug: {
+          availableFields: Object.keys(req.body),
+          bodyType: typeof req.body,
+          bodyLength: req.body ? Object.keys(req.body).length : 0
+        }
       });
     }
     
+    // === POST DATA CONSTRUCTION ANALYSIS ===
+    console.log('=== 🏗️ POST DATA CONSTRUCTION ANALYSIS ===');
     const postData = {
       ...req.body,
       author: req.user.id,
-      city: req.body.city || user.city,
-      cityId: req.body.cityId || user.cityId,
-      stateCode: req.body.stateCode || user.stateCode,
-      neighborhood: req.body.neighborhood || user.neighborhood
+      city: req.body.city || user?.city || 'FALLBACK_CITY',
+      cityId: req.body.cityId || user?.cityId || 'FALLBACK_CITY_ID',
+      stateCode: req.body.stateCode || user?.stateCode || 'FALLBACK_STATE',
+      neighborhood: req.body.neighborhood || user?.neighborhood || 'FALLBACK_NEIGHBORHOOD'
     };
     
-    // Log the final post data for debugging
-    console.log('Final post data:', postData);
+    console.log('Post data construction result:');
+    console.log('- Original body fields:', Object.keys(req.body));
+    console.log('- Final post data fields:', Object.keys(postData));
+    console.log('- Content:', postData.content);
+    console.log('- City:', postData.city);
+    console.log('- CityId:', postData.cityId);
+    console.log('- StateCode:', postData.stateCode);
+    console.log('- Neighborhood:', postData.neighborhood);
+    console.log('- Author:', postData.author);
     
-    // Handle image if present
+    // Log the final post data for debugging
+    console.log('Final post data object:', JSON.stringify(postData, null, 2));
+    
+    // === IMAGE PROCESSING ANALYSIS ===
+    console.log('=== 🖼️ IMAGE PROCESSING ANALYSIS ===');
     if (req.file) {
-      console.log('Image file received:', req.file.originalname);
+      console.log('✅ Image file received:', req.file.originalname);
+      console.log('Image file details:');
+      console.log('- Field name:', req.file.fieldname);
+      console.log('- Original name:', req.file.originalname);
+      console.log('- MIME type:', req.file.mimetype);
+      console.log('- File size:', req.file.size, 'bytes');
+      console.log('- Buffer present:', !!req.file.buffer);
+      console.log('- Buffer length:', req.file.buffer ? req.file.buffer.length : 'N/A');
       
       // Convert file buffer to base64 for storage
       try {
@@ -180,43 +267,150 @@ exports.createPost = async (req, res, next) => {
         const dataUrl = `data:${mimeType};base64,${base64Image}`;
         
         postData.images = [dataUrl];
-        console.log('Image converted to base64 successfully');
+        console.log('✅ Image converted to base64 successfully');
+        console.log('Base64 length:', base64Image.length);
+        console.log('Data URL length:', dataUrl.length);
+        console.log('MIME type used:', mimeType);
       } catch (imageError) {
-        console.error('Error processing image:', imageError);
+        console.error('❌ Error processing image:', imageError);
+        console.error('Image error stack:', imageError.stack);
         // Continue without image if processing fails
         postData.images = [];
       }
+    } else {
+      console.log('ℹ️ No image file received');
     }
     
-    console.log('Post data with location and image:', postData);
+    // === FINAL POST DATA ANALYSIS ===
+    console.log('=== 🎯 FINAL POST DATA ANALYSIS ===');
+    console.log('Post data before creation:');
+    console.log('- Content length:', postData.content ? postData.content.length : 'N/A');
+    console.log('- Category:', postData.category);
+    console.log('- City:', postData.city);
+    console.log('- CityId:', postData.cityId);
+    console.log('- StateCode:', postData.stateCode);
+    console.log('- Neighborhood:', postData.neighborhood);
+    console.log('- Author:', postData.author);
+    console.log('- Images count:', postData.images ? postData.images.length : 0);
+    console.log('- Scope:', postData.scope);
     
-    const post = await Post.create(postData);
-    console.log('Post created successfully:', post);
+    // === POST CREATION ANALYSIS ===
+    console.log('=== 🚀 POST CREATION ANALYSIS ===');
+    console.log('Attempting to create post with data:', JSON.stringify(postData, null, 2));
     
-    // Add post to user's posts array
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id, 
-      {
-        $push: { posts: post._id },
-        $inc: { postCount: 1 }
-      },
-      { new: true }
-    );
+    try {
+      const post = await Post.create(postData);
+      console.log('✅ Post created successfully!');
+      console.log('Post ID:', post._id);
+      console.log('Post created at:', post.createdAt);
+      console.log('Post content preview:', post.content ? post.content.substring(0, 100) + '...' : 'No content');
+    } catch (createError) {
+      console.error('❌ POST CREATION FAILED!');
+      console.error('Error type:', createError.constructor.name);
+      console.error('Error message:', createError.message);
+      console.error('Error stack:', createError.stack);
+      
+      if (createError.name === 'ValidationError') {
+        console.error('Validation errors:');
+        Object.keys(createError.errors).forEach(key => {
+          console.error(`- ${key}:`, createError.errors[key].message);
+        });
+      }
+      
+      throw createError; // Re-throw to be caught by outer try-catch
+    }
     
-    console.log('User updated with new post:', updatedUser);
+    // === USER UPDATE ANALYSIS ===
+    console.log('=== 👤 USER UPDATE ANALYSIS ===');
+    console.log('Updating user with new post ID:', post._id);
     
-    // Populate the author field for the response
-    const populatedPost = await Post.findById(post._id).populate({
-      path: 'author',
-      select: 'username fullName profilePicture avatar'
-    });
+    try {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id, 
+        {
+          $push: { posts: post._id },
+          $inc: { postCount: 1 }
+        },
+        { new: true }
+      );
+      
+      console.log('✅ User updated successfully');
+      console.log('User post count:', updatedUser.postCount);
+      console.log('User posts array length:', updatedUser.posts.length);
+    } catch (updateError) {
+      console.error('❌ User update failed:', updateError.message);
+      // Continue anyway - post was created successfully
+    }
+    
+    // === RESPONSE POPULATION ANALYSIS ===
+    console.log('=== 📊 RESPONSE POPULATION ANALYSIS ===');
+    console.log('Populating post with author details');
+    
+    try {
+      const populatedPost = await Post.findById(post._id).populate({
+        path: 'author',
+        select: 'username fullName profilePicture avatar'
+      });
+      
+      console.log('✅ Post populated successfully');
+      console.log('Author username:', populatedPost.author?.username);
+      console.log('Author full name:', populatedPost.author?.fullName);
+    } catch (populateError) {
+      console.error('❌ Post population failed:', populateError.message);
+      // Use unpopulated post if population fails
+      const populatedPost = post;
+    }
+    
+    // === SUCCESS RESPONSE ===
+    console.log('=== 🎉 SUCCESS RESPONSE ===');
+    console.log('Sending 201 response with populated post');
     
     res.status(201).json({
       success: true,
       data: populatedPost
     });
+    
+    console.log('=== ✅ CREATE POST REQUEST COMPLETED SUCCESSFULLY ===');
   } catch (err) {
-    console.error('Error creating post:', err);
+    console.error('=== ❌ CREATE POST REQUEST FAILED ===');
+    console.error('Error timestamp:', new Date().toISOString());
+    console.error('Error type:', err.constructor.name);
+    console.error('Error name:', err.name);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+    
+    // Additional error analysis
+    if (err.name === 'ValidationError') {
+      console.error('=== 🔍 VALIDATION ERROR DETAILS ===');
+      console.error('Validation error fields:', Object.keys(err.errors));
+      Object.keys(err.errors).forEach(key => {
+        const fieldError = err.errors[key];
+        console.error(`Field: ${key}`);
+        console.error(`  - Value:`, fieldError.value);
+        console.error(`  - Message:`, fieldError.message);
+        console.error(`  - Path:`, fieldError.path);
+        console.error(`  - Kind:`, fieldError.kind);
+      });
+    }
+    
+    if (err.name === 'CastError') {
+      console.error('=== 🔍 CAST ERROR DETAILS ===');
+      console.error('Cast error field:', err.path);
+      console.error('Cast error value:', err.value);
+      console.error('Cast error kind:', err.kind);
+    }
+    
+    if (err.code === 11000) {
+      console.error('=== 🔍 DUPLICATE KEY ERROR DETAILS ===');
+      console.error('Duplicate key error:', err.keyValue);
+    }
+    
+    console.error('=== 🔍 REQUEST CONTEXT AT ERROR ===');
+    console.error('User ID:', req.user?.id);
+    console.error('Request body keys:', Object.keys(req.body || {}));
+    console.error('Request file present:', !!req.file);
+    console.error('Content-Type header:', req.headers['content-type']);
+    
     next(err);
   }
 };
