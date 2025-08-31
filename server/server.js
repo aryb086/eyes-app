@@ -63,28 +63,7 @@ if (config.env === 'development') {
 
 // Raw body parser for multipart requests (when multer is disabled)
 // This MUST come BEFORE the standard body parsers to intercept multipart requests
-app.use('/api/v1/posts', (req, res, next) => {
-  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
-    console.log('=== 🔧 RAW BODY PARSER INTERCEPTED ===');
-    console.log('Content-Type:', req.headers['content-type']);
-    
-    let data = '';
-    req.setEncoding('utf8');
-    
-    req.on('data', (chunk) => {
-      data += chunk;
-    });
-    
-    req.on('end', () => {
-      console.log('Raw body length:', data.length);
-      console.log('Raw body preview:', data.substring(0, 200) + '...');
-      req.body = data;
-      next();
-    });
-  } else {
-    next();
-  }
-});
+app.use('/api/v1/posts', express.raw({ type: 'multipart/form-data', limit: '10mb' }));
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
