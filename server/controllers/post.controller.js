@@ -136,153 +136,71 @@ exports.createPost = async (req, res, next) => {
     console.log('Headers:', req.headers);
     console.log('Content-Type:', req.headers['content-type']);
     
-    // Check if this is a multipart request
-    const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
+    // Multer middleware is now applied at the route level
+    // req.file and req.body are already populated by multer
     
-    if (isMultipart) {
-      console.log('Multipart request detected, using multer parser');
+    console.log('Request processed by multer middleware');
+    console.log('Body keys:', Object.keys(req.body));
+    console.log('File:', req.file ? req.file.originalname : 'No file');
+    
+    // Add user and location data
+    const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
+    
+    const postData = {
+      ...req.body,
+      author: req.user.id,
+      city: req.body.city || user.city,
+      cityId: req.body.cityId || user.cityId,
+      stateCode: req.body.stateCode || user.stateCode,
+      neighborhood: req.body.neighborhood || user.neighborhood
+    };
+    
+    // Handle image if present
+    if (req.file) {
+      console.log('Image file received:', req.file.originalname);
       
-      // Use multer to parse multipart data
-      const multer = require('multer');
-      const upload = multer({
-        storage: multer.memoryStorage(),
-        limits: {
-          fileSize: 5 * 1024 * 1024, // 5MB
-        },
-        fileFilter: (req, file, cb) => {
-          if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-          } else {
-            cb(new Error('Only image files are allowed!'), false);
-          }
-        }
-      }).single('image');
-      
-      return new Promise((resolve, reject) => {
-        upload(req, res, async (err) => {
-          if (err) {
-            console.error('Multer parsing error:', err);
-            return res.status(400).json({
-              success: false,
-              message: 'Unable to process image upload. Please try again.',
-              error: err.message
-            });
-          }
-          
-          console.log('Multer parsed successfully');
-          console.log('Body keys:', Object.keys(req.body));
-          console.log('File:', req.file ? req.file.originalname : 'No file');
-          
-          try {
-            // Add user and location data
-            const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
-            
-            const postData = {
-              ...req.body,
-              author: req.user.id,
-              city: req.body.city || user.city,
-              cityId: req.body.cityId || user.cityId,
-              stateCode: req.body.stateCode || user.stateCode,
-              neighborhood: req.body.neighborhood || user.neighborhood
-            };
-            
-            // Handle image if present
-            if (req.file) {
-              console.log('Image file received:', req.file.originalname);
-              
-              // Convert file buffer to base64 for storage
-              try {
-                const base64Image = req.file.buffer.toString('base64');
-                const mimeType = req.file.mimetype || 'image/jpeg';
-                const dataUrl = `data:${mimeType};base64,${base64Image}`;
-                
-                postData.images = [dataUrl];
-                console.log('Image converted to base64 successfully');
-              } catch (imageError) {
-                console.error('Error processing image:', imageError);
-                // Continue without image if processing fails
-                postData.images = [];
-              }
-            }
-            
-            console.log('Post data with location and image:', postData);
-            
-            const post = await Post.create(postData);
-            console.log('Post created successfully:', post);
-            
-            // Add post to user's posts array
-            const updatedUser = await User.findByIdAndUpdate(
-              req.user.id, 
-              {
-                $push: { posts: post._id },
-                $inc: { postCount: 1 }
-              },
-              { new: true }
-            );
-            
-            console.log('User updated with new post:', updatedUser);
-            
-            // Populate the author field for the response
-            const populatedPost = await Post.findById(post._id).populate({
-              path: 'author',
-              select: 'username fullName profilePicture avatar'
-            });
-            
-            res.status(201).json({
-              success: true,
-              data: populatedPost
-            });
-          } catch (createError) {
-            console.error('Error creating post:', createError);
-            res.status(500).json({
-              success: false,
-              message: 'Failed to create post'
-            });
-          }
-        });
-      });
-    } else {
-      // Handle regular JSON request
-      // Add user and location data to req.body
-      const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
-      
-      const postData = {
-        ...req.body,
-        author: req.user.id,
-        city: req.body.city || user.city,
-        cityId: req.body.cityId || user.cityId,
-        stateCode: req.body.stateCode || user.stateCode,
-        neighborhood: req.body.neighborhood || user.neighborhood
-      };
-      
-      console.log('Post data with location:', postData);
-
-      const post = await Post.create(postData);
-      console.log('Post created successfully:', post);
-
-      // Add post to user's posts array
-      const updatedUser = await User.findByIdAndUpdate(
-        req.user.id, 
-        {
-          $push: { posts: post._id },
-          $inc: { postCount: 1 }
-        },
-        { new: true }
-      );
-      
-      console.log('User updated with new post:', updatedUser);
-
-      // Populate the author field for the response
-      const populatedPost = await Post.findById(post._id).populate({
-        path: 'author',
-        select: 'username fullName profilePicture avatar'
-      });
-
-      res.status(201).json({
-        success: true,
-        data: populatedPost
-      });
+      // Convert file buffer to base64 for storage
+      try {
+        const base64Image = req.file.buffer.toString('base64');
+        const mimeType = req.file.mimetype || 'image/jpeg';
+        const dataUrl = `data:${mimeType};base64,${base64Image}`;
+        
+        postData.images = [dataUrl];
+        console.log('Image converted to base64 successfully');
+      } catch (imageError) {
+        console.error('Error processing image:', imageError);
+        // Continue without image if processing fails
+        postData.images = [];
+      }
     }
+    
+    console.log('Post data with location and image:', postData);
+    
+    const post = await Post.create(postData);
+    console.log('Post created successfully:', post);
+    
+    // Add post to user's posts array
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id, 
+      {
+        $push: { posts: post._id },
+        $inc: { postCount: 1 }
+      },
+      { new: true }
+    );
+    
+    console.log('User updated with new post:', updatedUser);
+    
+    // Populate the author field for the response
+    const populatedPost = await Post.findById(post._id).populate({
+      path: 'author',
+      select: 'username fullName profilePicture avatar'
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: populatedPost
+    });
   } catch (err) {
     console.error('Error creating post:', err);
     next(err);

@@ -41,6 +41,7 @@ router.use(auth.protect);
 // @access  Private
 router.post(
   '/',
+  upload.single('image'), // Add multer middleware here
   [
     check('content', 'Content is required')
       .not()
