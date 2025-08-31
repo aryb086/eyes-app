@@ -143,7 +143,7 @@ exports.createPost = async (req, res, next) => {
       console.log('Multipart request detected, using formidable parser');
       
       // Use formidable to parse multipart data
-      const { formidable } = require('formidable');
+      const formidable = require('formidable');
       
       return new Promise((resolve, reject) => {
         const form = formidable({
@@ -157,9 +157,14 @@ exports.createPost = async (req, res, next) => {
             console.error('Formidable parsing error:', err);
             return res.status(400).json({
               success: false,
-              message: 'Unable to process image upload. Please try again.'
+              message: 'Unable to process image upload. Please try again.',
+              error: err.message
             });
           }
+          
+          console.log('Formidable parsed successfully');
+          console.log('Fields keys:', Object.keys(fields));
+          console.log('Files keys:', Object.keys(files));
           
           console.log('Parsed fields:', fields);
           console.log('Parsed files:', files);
@@ -182,8 +187,21 @@ exports.createPost = async (req, res, next) => {
               const file = files.image[0];
               console.log('Image file received:', file.originalFilename);
               
-              // For now, store the file path (in production, you'd upload to cloud storage)
-              postData.images = [file.filepath];
+              // Convert file to base64 for storage (temporary solution for Heroku)
+              const fs = require('fs');
+              try {
+                const fileBuffer = fs.readFileSync(file.filepath);
+                const base64Image = fileBuffer.toString('base64');
+                const mimeType = file.mimetype || 'image/jpeg';
+                const dataUrl = `data:${mimeType};base64,${base64Image}`;
+                
+                postData.images = [dataUrl];
+                console.log('Image converted to base64 successfully');
+              } catch (imageError) {
+                console.error('Error processing image:', imageError);
+                // Continue without image if processing fails
+                postData.images = [];
+              }
             }
             
             console.log('Post data with location and image:', postData);
