@@ -143,7 +143,7 @@ exports.createPost = async (req, res, next) => {
       console.log('Multipart request detected, using formidable parser');
       
       // Use formidable to parse multipart data
-      const formidable = require('formidable');
+      const { formidable } = require('formidable');
       
       return new Promise((resolve, reject) => {
         const form = formidable({
