@@ -140,69 +140,130 @@ exports.createPost = async (req, res, next) => {
     const isMultipart = req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data');
     
     if (isMultipart) {
-      console.log('Multipart request detected, attempting custom parsing');
+      console.log('Multipart request detected, using formidable parser');
       
-      // For multipart requests, we need to handle the raw body manually
-      // since multer is failing due to boundary issues
-      try {
-        // Try to extract data from the raw request
-        const rawData = req.body;
-        console.log('Raw multipart data:', rawData);
-        
-        // If we have content in the body, use it
-        if (rawData && rawData.content) {
-          console.log('Content found in multipart data');
-        } else {
-          console.log('No content found, treating as text post');
-        }
-      } catch (parseError) {
-        console.error('Error parsing multipart data:', parseError);
-        return res.status(400).json({
-          success: false,
-          message: 'Unable to process image upload. Please create a text-only post for now.'
+      // Use formidable to parse multipart data
+      const formidable = require('formidable');
+      
+      return new Promise((resolve, reject) => {
+        const form = formidable({
+          maxFileSize: 5 * 1024 * 1024, // 5MB
+          keepExtensions: true,
+          multiples: false
         });
-      }
+        
+        form.parse(req, async (err, fields, files) => {
+          if (err) {
+            console.error('Formidable parsing error:', err);
+            return res.status(400).json({
+              success: false,
+              message: 'Unable to process image upload. Please try again.'
+            });
+          }
+          
+          console.log('Parsed fields:', fields);
+          console.log('Parsed files:', files);
+          
+          try {
+            // Add user and location data
+            const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
+            
+            const postData = {
+              ...fields,
+              author: req.user.id,
+              city: fields.city || user.city,
+              cityId: fields.cityId || user.cityId,
+              stateCode: fields.stateCode || user.stateCode,
+              neighborhood: fields.neighborhood || user.neighborhood
+            };
+            
+            // Handle image if present
+            if (files.image && files.image[0]) {
+              const file = files.image[0];
+              console.log('Image file received:', file.originalFilename);
+              
+              // For now, store the file path (in production, you'd upload to cloud storage)
+              postData.images = [file.filepath];
+            }
+            
+            console.log('Post data with location and image:', postData);
+            
+            const post = await Post.create(postData);
+            console.log('Post created successfully:', post);
+            
+            // Add post to user's posts array
+            const updatedUser = await User.findByIdAndUpdate(
+              req.user.id, 
+              {
+                $push: { posts: post._id },
+                $inc: { postCount: 1 }
+              },
+              { new: true }
+            );
+            
+            console.log('User updated with new post:', updatedUser);
+            
+            // Populate the author field for the response
+            const populatedPost = await Post.findById(post._id).populate({
+              path: 'author',
+              select: 'username fullName profilePicture avatar'
+            });
+            
+            res.status(201).json({
+              success: true,
+              data: populatedPost
+            });
+          } catch (createError) {
+            console.error('Error creating post:', createError);
+            res.status(500).json({
+              success: false,
+              message: 'Failed to create post'
+            });
+          }
+        });
+      });
+    } else {
+      // Handle regular JSON request
+      // Add user and location data to req.body
+      const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
+      
+      const postData = {
+        ...req.body,
+        author: req.user.id,
+        city: req.body.city || user.city,
+        cityId: req.body.cityId || user.cityId,
+        stateCode: req.body.stateCode || user.stateCode,
+        neighborhood: req.body.neighborhood || user.neighborhood
+      };
+      
+      console.log('Post data with location:', postData);
+
+      const post = await Post.create(postData);
+      console.log('Post created successfully:', post);
+
+      // Add post to user's posts array
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id, 
+        {
+          $push: { posts: post._id },
+          $inc: { postCount: 1 }
+        },
+        { new: true }
+      );
+      
+      console.log('User updated with new post:', updatedUser);
+
+      // Populate the author field for the response
+      const populatedPost = await Post.findById(post._id).populate({
+        path: 'author',
+        select: 'username fullName profilePicture avatar'
+      });
+
+      res.status(201).json({
+        success: true,
+        data: populatedPost
+      });
     }
-    
-    // Add user and location data to req.body
-    const user = await User.findById(req.user.id).select('location cityId stateCode neighborhood');
-    
-    const postData = {
-      ...req.body,
-      author: req.user.id,
-      city: req.body.city || user.city,
-      cityId: req.body.cityId || user.cityId,
-      stateCode: req.body.stateCode || user.stateCode,
-      neighborhood: req.body.neighborhood || user.neighborhood
-    };
-    
-    console.log('Post data with location:', postData);
-
-    const post = await Post.create(postData);
-    console.log('Post created successfully:', post);
-
-    // Add post to user's posts array
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id, 
-      {
-        $push: { posts: post._id },
-        $inc: { postCount: 1 }
-      },
-      { new: true }
-    );
-    
-    console.log('User updated with new post:', updatedUser);
-
-    // Populate the author field for the response
-    const populatedPost = await Post.findById(post._id).populate({
-      path: 'author',
-      select: 'username fullName profilePicture avatar'
-    });
-
-    res.status(201).json({
-      success: true,
-      data: populatedPost
-    });
   } catch (err) {
     console.error('Error creating post:', err);
     next(err);
