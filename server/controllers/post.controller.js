@@ -528,13 +528,12 @@ exports.deletePost = async (req, res, next) => {
 // @access  Private (Admin only)
 exports.clearAllPosts = async (req, res, next) => {
   try {
-    // Temporarily allow all authenticated users to clear posts for fresh deployment
-    // TODO: Restore admin-only access after deployment
-    // if (req.user.role !== 'admin') {
-    //   return next(
-    //     new ErrorResponse('Not authorized to perform this action', 403)
-    //   );
-    // }
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return next(
+        new ErrorResponse('Not authorized to perform this action', 403)
+      );
+    }
 
     // Delete all comments first
     const deletedComments = await Comment.deleteMany({});
