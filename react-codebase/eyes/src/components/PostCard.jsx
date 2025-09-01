@@ -74,7 +74,7 @@ const PostCard = ({
 
   const getCategoryColor = (categoryId) => {
     const category = POST_CATEGORIES.find(c => c.id === categoryId);
-    return category?.color || 'bg-gray-100 text-gray-800';
+    return category?.color || 'bg-muted text-muted-foreground';
   };
 
   const getCategoryLabel = (categoryId) => {
@@ -120,11 +120,11 @@ const PostCard = ({
       
       <CardContent className="px-6 pb-6 space-y-4">
         <div>
-          <p className="text-gray-800 leading-relaxed">{post.content}</p>
+          <p className="text-foreground leading-relaxed">{post.content}</p>
         </div>
         
         {post.images && post.images.length > 0 && (
-          <div className="rounded-xl overflow-hidden bg-gray-50">
+          <div className="rounded-xl overflow-hidden bg-muted/50">
             <img 
               src={post.images[0]} 
               alt="Post content" 
@@ -134,19 +134,19 @@ const PostCard = ({
                 e.target.nextSibling.style.display = 'block';
               }}
             />
-            <div className="hidden w-full h-48 bg-gray-100 flex items-center justify-center">
-              <span className="text-gray-500 text-sm">Image failed to load</span>
+            <div className="hidden w-full h-48 bg-muted flex items-center justify-center">
+              <span className="text-muted-foreground text-sm">Image failed to load</span>
             </div>
           </div>
         )}
         
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-4 border-t border-border">
           <div className="flex items-center space-x-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLike}
-              className="flex items-center space-x-2 text-gray-600 hover:text-red-500 hover:bg-red-50"
+              className="flex items-center space-x-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
             >
               <Heart className={`h-5 w-5 ${post.isLiked ? 'text-red-500 fill-current' : ''}`} />
               <span className="font-medium">{post.likes?.length || 0}</span>
@@ -155,7 +155,7 @@ const PostCard = ({
               variant="ghost" 
               size="sm" 
               onClick={handleComment}
-              className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 hover:bg-blue-50"
+              className="flex items-center space-x-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10"
             >
               <MessageCircle className="h-5 w-5" />
               <span className="font-medium">{post.comments?.length || 0}</span>
@@ -165,7 +165,7 @@ const PostCard = ({
             variant="ghost" 
             size="sm"
             onClick={handleShare}
-            className="text-gray-600 hover:text-green-500 hover:bg-green-50"
+            className="text-muted-foreground hover:text-green-500 hover:bg-green-500/10"
           >
             <Share2 className="h-5 w-5" />
           </Button>
@@ -184,16 +184,16 @@ const PostCard = ({
                       alt={comment.author?.fullName || comment.author?.username}
                       className="w-8 h-8 rounded-full object-cover"
                     />
-                    <div className="flex-1 bg-gray-50 rounded-2xl px-4 py-3">
+                    <div className="flex-1 bg-muted/50 rounded-2xl px-4 py-3">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-medium text-sm text-gray-900">
+                        <span className="font-medium text-sm text-foreground">
                           {comment.author?.fullName || comment.author?.username}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {formatDate(comment.createdAt)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700">{comment.content}</p>
+                      <p className="text-sm text-foreground">{comment.content}</p>
                     </div>
                   </div>
                 ))}

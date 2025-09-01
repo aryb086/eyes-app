@@ -11,14 +11,14 @@ import postService from '../services/postService';
 import { toast } from 'react-hot-toast';
 
 const POST_CATEGORIES = [
-  { id: 'all', label: 'All', color: 'bg-gray-100 text-gray-800' },
-  { id: 'general', label: 'General', color: 'bg-gray-100 text-gray-800' },
-  { id: 'news', label: 'News', color: 'bg-blue-100 text-blue-800' },
-  { id: 'events', label: 'Events', color: 'bg-green-100 text-green-800' },
-  { id: 'safety', label: 'Safety', color: 'bg-red-100 text-red-800' },
-  { id: 'community', label: 'Community', color: 'bg-purple-100 text-purple-800' },
-  { id: 'business', label: 'Business', color: 'bg-yellow-100 text-yellow-800' },
-  { id: 'infrastructure', label: 'Infrastructure', color: 'bg-orange-100 text-orange-800' }
+  { id: 'all', label: 'All', color: 'bg-muted text-muted-foreground' },
+  { id: 'general', label: 'General', color: 'bg-muted text-muted-foreground' },
+  { id: 'news', label: 'News', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  { id: 'events', label: 'Events', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
+  { id: 'safety', label: 'Safety', color: 'bg-red-500/10 text-red-600 dark:text-red-400' },
+  { id: 'community', label: 'Community', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+  { id: 'business', label: 'Business', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+  { id: 'infrastructure', label: 'Infrastructure', color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' }
 ];
 
 const NeighborhoodFeed = () => {

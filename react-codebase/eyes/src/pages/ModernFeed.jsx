@@ -14,13 +14,13 @@ import { toast } from "react-hot-toast";
 
 // Post categories - aligned with backend Post model
 const POST_CATEGORIES = [
-  { id: 'general', label: 'General', color: 'bg-gray-100 text-gray-800' },
-  { id: 'news', label: 'News', color: 'bg-blue-100 text-blue-800' },
-  { id: 'events', label: 'Events', color: 'bg-green-100 text-green-800' },
-  { id: 'safety', label: 'Safety', color: 'bg-red-100 text-red-800' },
-  { id: 'community', label: 'Community', color: 'bg-purple-100 text-purple-800' },
-  { id: 'business', label: 'Business', color: 'bg-yellow-100 text-yellow-800' },
-  { id: 'infrastructure', label: 'Infrastructure', color: 'bg-orange-100 text-orange-800' }
+  { id: 'general', label: 'General', color: 'bg-muted text-muted-foreground' },
+  { id: 'news', label: 'News', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  { id: 'events', label: 'Events', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
+  { id: 'safety', label: 'Safety', color: 'bg-red-500/10 text-red-600 dark:text-red-400' },
+  { id: 'community', label: 'Community', color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+  { id: 'business', label: 'Business', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+  { id: 'infrastructure', label: 'Infrastructure', color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' }
 ];
 
 const ModernFeed = () => {
@@ -699,7 +699,7 @@ const ModernFeed = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowCreateModal(false)}
-                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+                className="h-8 w-8 p-0 rounded-full hover:bg-muted"
               >
                 <span className="text-xl">×</span>
               </Button>
@@ -744,7 +744,7 @@ const ModernFeed = () => {
               
               {/* Category Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Category</label>
+                <label className="block text-sm font-medium text-foreground mb-3">Category</label>
                 <div className="grid grid-cols-2 gap-2">
                   {POST_CATEGORIES.map(category => (
                     <button
@@ -753,8 +753,8 @@ const ModernFeed = () => {
                       onClick={() => setNewPost({...newPost, category: category.id})}
                       className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                         newPost.category === category.id
-                          ? `${category.color} ring-2 ring-blue-500 ring-offset-2`
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? `${category.color} ring-2 ring-primary ring-offset-2`
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
                       }`}
                     >
                       {category.label}
@@ -766,8 +766,8 @@ const ModernFeed = () => {
               {/* Image Upload */}
               {!imagePreview && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Add Image (Optional)</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+                  <label className="block text-sm font-medium text-foreground mb-3">Add Image (Optional)</label>
+                  <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -786,16 +786,16 @@ const ModernFeed = () => {
               
               {/* Location Warning */}
               {!userLocation?.city || !userLocation?.neighborhood ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
-                      <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <MapPin className="h-3 w-3 text-yellow-600" />
+                      <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                        <MapPin className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-yellow-800">Location Required</p>
-                      <p className="text-sm text-yellow-700 mt-1">
+                      <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Location Required</p>
+                      <p className="text-sm text-yellow-600/80 dark:text-yellow-400/80 mt-1">
                         Please set your location before posting
                       </p>
                     </div>
@@ -804,7 +804,7 @@ const ModernFeed = () => {
               ) : null}
               
               {/* Action Buttons */}
-              <div className="flex space-x-3 pt-4 border-t border-gray-100">
+              <div className="flex space-x-3 pt-4 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
