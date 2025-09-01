@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import locationService from '../services/locationService';
+import { useAuth } from './AuthContext';
 
 const LocationContext = createContext();
 
@@ -17,22 +18,37 @@ export const LocationProvider = ({ children }) => {
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { currentUser } = useAuth();
 
   // Load initial location data
   useEffect(() => {
     loadInitialData();
-  }, []);
+  }, [currentUser]);
 
   const loadInitialData = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Load user's saved location from localStorage
-      const savedLocation = localStorage.getItem('userLocation');
-      if (savedLocation) {
-        const parsedLocation = JSON.parse(savedLocation);
-        setUserLocation(parsedLocation);
+      // Get user location from currentUser (backend) or localStorage (fallback)
+      if (currentUser?.city && currentUser?.neighborhood) {
+        const locationFromBackend = {
+          city: currentUser.city,
+          neighborhood: currentUser.neighborhood,
+          address: currentUser.address,
+          state: currentUser.stateCode,
+          country: currentUser.country,
+          zipCode: currentUser.zipCode,
+          coordinates: currentUser.location?.coordinates || [0, 0]
+        };
+        setUserLocation(locationFromBackend);
+      } else {
+        // Fallback to localStorage
+        const savedLocation = localStorage.getItem('userLocation');
+        if (savedLocation) {
+          const parsedLocation = JSON.parse(savedLocation);
+          setUserLocation(parsedLocation);
+        }
       }
 
       // Load demo cities and neighborhoods (skip backend API calls for now)
