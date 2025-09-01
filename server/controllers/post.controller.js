@@ -312,8 +312,9 @@ exports.createPost = async (req, res, next) => {
     console.log('=== 🚀 POST CREATION ANALYSIS ===');
     console.log('Attempting to create post with data:', JSON.stringify(postData, null, 2));
     
+    let post;
     try {
-      const post = await Post.create(postData);
+      post = await Post.create(postData);
       console.log('✅ Post created successfully!');
       console.log('Post ID:', post._id);
       console.log('Post created at:', post.createdAt);
