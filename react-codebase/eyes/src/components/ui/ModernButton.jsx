@@ -12,11 +12,11 @@ const ModernButton = ({
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-  primary: 'bg-teal-500 hover:bg-teal-600 text-white focus:ring-teal-500 shadow-md hover:shadow-lg transition-all duration-200 font-semibold',
-  secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-900 focus:ring-gray-500 shadow-sm hover:shadow-md transition-all duration-200',
-  outline: 'border border-teal-500 bg-transparent hover:bg-teal-50 text-teal-600 focus:ring-teal-500 hover:bg-teal-100 transition-all duration-200',
-  ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-teal-500 transition-all duration-200',
-  danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500 shadow-md hover:shadow-lg transition-all duration-200',
+  primary: 'bg-primary hover:bg-primary/90 text-primary-foreground focus:ring-primary shadow-md hover:shadow-lg transition-all duration-200 font-semibold',
+  secondary: 'bg-secondary hover:bg-secondary/80 text-secondary-foreground focus:ring-secondary shadow-sm hover:shadow-md transition-all duration-200',
+  outline: 'border border-primary bg-transparent hover:bg-primary/10 text-primary focus:ring-primary transition-all duration-200',
+  ghost: 'text-muted-foreground hover:text-foreground hover:bg-muted focus:ring-primary transition-all duration-200',
+  danger: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground focus:ring-destructive shadow-md hover:shadow-lg transition-all duration-200',
   success: 'bg-green-500 hover:bg-green-600 text-white focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-200'
 };
   

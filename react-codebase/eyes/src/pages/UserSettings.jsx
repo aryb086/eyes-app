@@ -313,12 +313,12 @@ const UserSettings = () => {
                   {/* Neighborhood Selection */}
                   {detectedLocation && (
                     <div className="space-y-4 pt-4 border-t border-gray-100">
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
                         <div className="flex items-start space-x-3">
-                          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                          <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
                           <div className="flex-1">
-                            <h4 className="font-medium text-green-900 mb-1">Location Detected</h4>
-                            <div className="text-sm text-green-800 space-y-1">
+                            <h4 className="font-medium text-green-600 dark:text-green-400 mb-1">Location Detected</h4>
+                            <div className="text-sm text-green-600/80 dark:text-green-400/80 space-y-1">
                               <p><strong>Address:</strong> {detectedLocation.address}</p>
                               <p><strong>City:</strong> {detectedLocation.city}, {detectedLocation.state}</p>
                               <p><strong>Detected Neighborhood:</strong> {detectedLocation.neighborhood}</p>
@@ -336,16 +336,16 @@ const UserSettings = () => {
                               onClick={() => handleNeighborhoodSelect(neighborhood)}
                               className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                                 selectedNeighborhood?.name === neighborhood.name
-                                  ? 'border-blue-500 bg-blue-50'
-                                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                  ? 'border-primary bg-primary/10'
+                                  : 'border-border hover:border-primary/50 hover:bg-muted/50'
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
-                                  <Building2 className="h-4 w-4 text-gray-400" />
+                                  <Building2 className="h-4 w-4 text-muted-foreground" />
                                   <div>
-                                    <p className="font-medium text-gray-900">{neighborhood.name}</p>
-                                    <p className="text-sm text-gray-500">
+                                    <p className="font-medium text-foreground">{neighborhood.name}</p>
+                                    <p className="text-sm text-muted-foreground">
                                       {neighborhood.distance >= 1000 
                                         ? `${(neighborhood.distance / 1000).toFixed(1)}km away`
                                         : `${neighborhood.distance}m away`
@@ -354,7 +354,7 @@ const UserSettings = () => {
                                   </div>
                                 </div>
                                 {selectedNeighborhood?.name === neighborhood.name && (
-                                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                                  <CheckCircle className="h-4 w-4 text-primary" />
                                 )}
                               </div>
                             </div>

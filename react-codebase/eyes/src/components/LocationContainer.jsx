@@ -125,12 +125,12 @@ const LocationContainer = ({
 
   return (
     <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="pb-3 px-6 pt-6 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <CardHeader className="pb-3 px-6 pt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <MapPin className="h-4 w-4 text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
+              <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-lg font-semibold text-foreground">
                 {locationData.neighborhood}
               </h3>
               <Badge variant="secondary" className="text-xs">
@@ -209,7 +209,7 @@ const LocationContainer = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAllPosts(!showAllPosts)}
-                  className="text-blue-600 hover:text-blue-700"
+                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   {showAllPosts ? 'Show Less' : `Show All (${posts.length})`}
                 </Button>

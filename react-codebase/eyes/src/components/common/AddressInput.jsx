@@ -137,16 +137,16 @@ function AddressInput({ onLocationDetected, className = '' }) {
 
       {/* Error Display */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
       {/* Detected Location Display */}
       {detectedLocation && (
-        <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
-          <h4 className="font-semibold text-teal-900 mb-2">Location Detected!</h4>
-          <div className="space-y-2 text-sm text-teal-800">
+        <div className="p-4 bg-teal-500/10 border border-teal-500/20 rounded-lg">
+          <h4 className="font-semibold text-teal-600 dark:text-teal-400 mb-2">Location Detected!</h4>
+          <div className="space-y-2 text-sm text-teal-600/80 dark:text-teal-400/80">
             <p><strong>Address:</strong> {detectedLocation.fullAddress}</p>
             <p><strong>City:</strong> {detectedLocation.city}</p>
             {detectedLocation.neighborhood && (
