@@ -90,12 +90,8 @@ class PostService {
       
       // Check if postData is FormData (has image) or regular object
       if (postData instanceof FormData) {
-        // Handle image upload
-        response = await api.post(ENDPOINTS.POSTS.CREATE, postData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        // Handle image upload - let browser set Content-Type with boundary
+        response = await api.post(ENDPOINTS.POSTS.CREATE, postData);
       } else {
         // Handle regular post without image
         response = await api.post(ENDPOINTS.POSTS.CREATE, postData);
@@ -114,11 +110,8 @@ class PostService {
       let response;
       
       if (postData instanceof FormData) {
-        response = await api.put(ENDPOINTS.POSTS.UPDATE(id), postData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        // Let browser set Content-Type with boundary
+        response = await api.put(ENDPOINTS.POSTS.UPDATE(id), postData);
       } else {
         response = await api.put(ENDPOINTS.POSTS.UPDATE(id), postData);
       }
