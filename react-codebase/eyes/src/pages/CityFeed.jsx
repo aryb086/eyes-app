@@ -614,73 +614,152 @@ const CityFeed = () => {
 
       {/* Create Post Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Create New Post</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  ×
-                </Button>
-              </div>
-              
-              <form onSubmit={handleCreatePost} className="space-y-4">
-                
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <img
+                  src="https://randomuser.me/api/portraits/lego/1.jpg"
+                  alt="Your avatar"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
                 <div>
-                  <label className="block text-sm font-medium mb-2">Content *</label>
-                  <textarea
-                    value={newPost.content}
-                    onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-                    placeholder="What's happening in your area?"
-                    required
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                    rows={4}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <select
-                    value={newPost.category}
-                    onChange={(e) => setNewPost({...newPost, category: e.target.value})}
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    {POST_CATEGORIES.filter(c => c.id !== 'all').map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Image (Optional)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  {imagePreview && (
-                    <div className="mt-2">
-                      <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded-md" />
-                    </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Create Post</h2>
+                  {userLocation && (
+                    <p className="text-sm text-gray-500 flex items-center">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {userLocation.neighborhood}, {userLocation.city}
+                    </p>
                   )}
                 </div>
-                
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCreateModal(false)}
+                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+              >
+                <span className="text-xl">×</span>
+              </Button>
+            </div>
+            
+            {/* Content */}
+            <form onSubmit={handleCreatePost} className="p-6 space-y-6">
+              {/* Text Area */}
+              <div>
+                <textarea
+                  value={newPost.content}
+                  onChange={(e) => setNewPost({...newPost, content: e.target.value})}
+                  placeholder="What's happening in your area?"
+                  className="w-full h-32 px-0 py-0 border-0 resize-none text-gray-900 placeholder-gray-500 focus:outline-none text-lg"
+                  required
+                />
+              </div>
+              
+              {/* Image Preview */}
+              {imagePreview && (
+                <div className="relative">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="w-full max-h-64 object-cover rounded-xl" 
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setNewPost({...newPost, image: null});
+                      setImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-black/50 text-white hover:bg-black/70"
+                  >
+                    ×
+                  </Button>
+                </div>
+              )}
+              
+              {/* Category Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Category</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {POST_CATEGORIES.filter(c => c.id !== 'all').map(category => (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => setNewPost({...newPost, category: category.id})}
+                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        newPost.category === category.id
+                          ? `${category.color} ring-2 ring-blue-500 ring-offset-2`
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Image Upload */}
+              {!imagePreview && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Add Image (Optional)</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 font-medium">Click to upload image</p>
+                      <p className="text-sm text-gray-500 mt-1">JPG, PNG up to 5MB</p>
+                    </label>
+                  </div>
+                </div>
+              )}
+              
+              {/* Location Warning */}
+              {!userLocation?.city || !userLocation?.neighborhood ? (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <MapPin className="h-3 w-3 text-yellow-600" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800">Location Required</p>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        Please set your location before posting
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              
+              {/* Action Buttons */}
+              <div className="flex space-x-3 pt-4 border-t border-gray-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 h-12 rounded-xl"
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
-                  className="w-full"
-                  disabled={loading}
+                  disabled={!userLocation?.city || !userLocation?.neighborhood || !newPost.content.trim() || loading}
+                  className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Creating...' : 'Create Post'}
+                  {loading ? 'Creating...' : 'Post'}
                 </Button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -91,6 +91,9 @@ const PostCard = ({
               src={post.author?.avatar || post.author?.profilePicture || 'https://randomuser.me/api/portraits/lego/1.jpg'}
               alt={post.author?.fullName || post.author?.username}
               className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+              onError={(e) => {
+                e.target.src = 'https://randomuser.me/api/portraits/lego/1.jpg';
+              }}
             />
             <div className="flex-1">
               <p className="font-semibold text-gray-900">
@@ -125,8 +128,15 @@ const PostCard = ({
             <img 
               src={post.images[0]} 
               alt="Post content" 
-              className="w-full h-80 object-cover"
+              className="w-full max-h-96 object-contain"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
             />
+            <div className="hidden w-full h-48 bg-gray-100 flex items-center justify-center">
+              <span className="text-gray-500 text-sm">Image failed to load</span>
+            </div>
           </div>
         )}
         
