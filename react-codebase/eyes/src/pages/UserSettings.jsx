@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
+import { detectLocationFromAddress, getNearbyNeighborhoods, reverseGeocodeCoordinates } from '../utils/locationDetection';
 
 const UserSettings = () => {
   const navigate = useNavigate();
@@ -51,14 +52,7 @@ const UserSettings = () => {
     }
   }, [userLocation]);
 
-  // Mock nearby neighborhoods data
-  const mockNearbyNeighborhoods = [
-    { id: 1, name: 'Capitol Hill', distance: '0.2 miles', city: 'Seattle' },
-    { id: 2, name: 'First Hill', distance: '0.5 miles', city: 'Seattle' },
-    { id: 3, name: 'Central District', distance: '0.8 miles', city: 'Seattle' },
-    { id: 4, name: 'Madison Valley', distance: '1.2 miles', city: 'Seattle' },
-    { id: 5, name: 'Madrona', distance: '1.5 miles', city: 'Seattle' }
-  ];
+
 
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
@@ -72,22 +66,14 @@ const UserSettings = () => {
     setDetectedLocation(null);
 
     try {
-      // Simulate geocoding API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use the location detection utility
+      const detectedLocation = detectLocationFromAddress(address);
       
-      // Mock geocoding response
-      const mockLocation = {
-        address: address,
-        city: 'Seattle',
-        state: 'WA',
-        country: 'USA',
-        coordinates: [47.6062, -122.3321],
-        neighborhood: 'Capitol Hill',
-        zipCode: '98102'
-      };
-
-      setDetectedLocation(mockLocation);
-      setNearbyNeighborhoods(mockNearbyNeighborhoods);
+      // Get nearby neighborhoods for the detected location
+      const nearbyNeighborhoods = getNearbyNeighborhoods(detectedLocation.city, detectedLocation.neighborhood);
+      
+      setDetectedLocation(detectedLocation);
+      setNearbyNeighborhoods(nearbyNeighborhoods);
       setShowLocationForm(false);
       toast.success('Location detected successfully!');
     } catch (err) {
@@ -110,21 +96,14 @@ const UserSettings = () => {
           });
         });
 
-        // Simulate reverse geocoding
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Use reverse geocoding utility
+        const location = await reverseGeocodeCoordinates(position.coords.latitude, position.coords.longitude);
         
-        const location = {
-          address: 'Auto-detected from GPS',
-          city: 'Seattle',
-          state: 'WA',
-          country: 'USA',
-          coordinates: [position.coords.latitude, position.coords.longitude],
-          neighborhood: 'Capitol Hill',
-          zipCode: '98102'
-        };
-
+        // Get nearby neighborhoods for the detected location
+        const nearbyNeighborhoods = getNearbyNeighborhoods(location.city, location.neighborhood);
+        
         setDetectedLocation(location);
-        setNearbyNeighborhoods(mockNearbyNeighborhoods);
+        setNearbyNeighborhoods(nearbyNeighborhoods);
         setShowLocationForm(false);
         toast.success('Location detected from GPS!');
       } else {

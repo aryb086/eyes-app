@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
+import { detectLocationFromAddress, getNearbyNeighborhoods, reverseGeocodeCoordinates } from '../utils/locationDetection';
 
 const LocationSetup = () => {
   const [step, setStep] = useState(1);
@@ -32,14 +33,7 @@ const LocationSetup = () => {
   const navigate = useNavigate();
   const { currentUser, updateUserLocation } = useAuth();
 
-  // Mock nearby neighborhoods data - in production this would come from backend
-  const mockNearbyNeighborhoods = [
-    { id: 1, name: 'Capitol Hill', distance: '0.2 miles', city: 'Seattle' },
-    { id: 2, name: 'First Hill', distance: '0.5 miles', city: 'Seattle' },
-    { id: 3, name: 'Central District', distance: '0.8 miles', city: 'Seattle' },
-    { id: 4, name: 'Madison Valley', distance: '1.2 miles', city: 'Seattle' },
-    { id: 5, name: 'Madrona', distance: '1.5 miles', city: 'Seattle' }
-  ];
+
 
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
@@ -53,22 +47,14 @@ const LocationSetup = () => {
     setDetectedLocation(null);
 
     try {
-      // Simulate geocoding API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use the location detection utility
+      const detectedLocation = detectLocationFromAddress(address);
       
-      // Mock geocoding response
-      const mockLocation = {
-        address: address,
-        city: 'Seattle',
-        state: 'WA',
-        country: 'USA',
-        coordinates: [47.6062, -122.3321],
-        neighborhood: 'Capitol Hill',
-        zipCode: '98102'
-      };
-
-      setDetectedLocation(mockLocation);
-      setNearbyNeighborhoods(mockNearbyNeighborhoods);
+      // Get nearby neighborhoods for the detected location
+      const nearbyNeighborhoods = getNearbyNeighborhoods(detectedLocation.city, detectedLocation.neighborhood);
+      
+      setDetectedLocation(detectedLocation);
+      setNearbyNeighborhoods(nearbyNeighborhoods);
       setStep(2);
       toast.success('Location detected successfully!');
     } catch (err) {
@@ -94,21 +80,14 @@ const LocationSetup = () => {
           });
         });
 
-        // Simulate reverse geocoding
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Use reverse geocoding utility
+        const location = await reverseGeocodeCoordinates(position.coords.latitude, position.coords.longitude);
         
-        const location = {
-          address: 'Auto-detected from GPS',
-          city: 'Seattle',
-          state: 'WA',
-          country: 'USA',
-          coordinates: [position.coords.latitude, position.coords.longitude],
-          neighborhood: 'Capitol Hill',
-          zipCode: '98102'
-        };
-
+        // Get nearby neighborhoods for the detected location
+        const nearbyNeighborhoods = getNearbyNeighborhoods(location.city, location.neighborhood);
+        
         setDetectedLocation(location);
-        setNearbyNeighborhoods(mockNearbyNeighborhoods);
+        setNearbyNeighborhoods(nearbyNeighborhoods);
         setStep(2);
         toast.success('Location detected from GPS!');
       } else {
