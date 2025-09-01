@@ -113,7 +113,7 @@ const LocationSetup = () => {
       const locationData = {
         ...detectedLocation,
         neighborhood: selectedNeighborhood.name,
-        neighborhoodId: selectedNeighborhood.id.toString()
+        neighborhoodId: selectedNeighborhood.place_id || selectedNeighborhood.id || selectedNeighborhood.name
       };
 
       // Save to localStorage first (this will work regardless of authentication)
@@ -276,12 +276,12 @@ const LocationSetup = () => {
                 <div>
                   <h3 className="font-medium text-gray-900 mb-4">Nearby Neighborhoods</h3>
                   <div className="space-y-3">
-                    {nearbyNeighborhoods.map((neighborhood) => (
+                    {nearbyNeighborhoods.map((neighborhood, index) => (
                       <div
-                        key={neighborhood.id}
+                        key={neighborhood.place_id || neighborhood.id || index}
                         onClick={() => handleNeighborhoodSelect(neighborhood)}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          selectedNeighborhood?.id === neighborhood.id
+                          selectedNeighborhood?.name === neighborhood.name
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
@@ -291,10 +291,10 @@ const LocationSetup = () => {
                             <Building2 className="h-5 w-5 text-gray-400" />
                             <div>
                               <p className="font-medium text-gray-900">{neighborhood.name}</p>
-                              <p className="text-sm text-gray-500">{neighborhood.distance} away</p>
+                              <p className="text-sm text-gray-500">{neighborhood.distance}m away</p>
                             </div>
                           </div>
-                          {selectedNeighborhood?.id === neighborhood.id && (
+                          {selectedNeighborhood?.name === neighborhood.name && (
                             <CheckCircle className="h-5 w-5 text-blue-600" />
                           )}
                         </div>
