@@ -147,6 +147,23 @@ class AuthService {
       throw error;
     }
   }
+
+  // Update user location
+  async updateUserLocation(locationData) {
+    try {
+      const response = await api.put(ENDPOINTS.USERS.UPDATE_LOCATION, locationData);
+      
+      // Update local storage with new user data
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Location update failed:', error);
+      throw error;
+    }
+  }
 }
 
 const authService = new AuthService();

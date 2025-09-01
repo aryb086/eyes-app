@@ -3,19 +3,47 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Input } from '../components/ui/NewInput';
-import { Eye, MapPin, User, Settings, ArrowLeft, Save, Trash2, Loader2 } from 'lucide-react';
+import { 
+  Eye, 
+  MapPin, 
+  User, 
+  Settings, 
+  ArrowLeft, 
+  Save, 
+  Trash2, 
+  Loader2,
+  Edit2,
+  CheckCircle,
+  AlertCircle,
+  Navigation,
+  Home,
+  Building2,
+  Search
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useLocation } from '../contexts/LocationContext';
 import { toast } from 'react-hot-toast';
 
 const UserSettings = () => {
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
-  const { userLocation, setLocationFromAddress, clearLocation, validateAddress } = useLocation();
+  const { currentUser, logout, updateUserLocation } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
   const [address, setAddress] = useState('');
   const [showLocationForm, setShowLocationForm] = useState(false);
+  const [detectedLocation, setDetectedLocation] = useState(null);
+  const [nearbyNeighborhoods, setNearbyNeighborhoods] = useState([]);
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState(null);
+  const [error, setError] = useState('');
+
+  // Get user location from currentUser or localStorage
+  const userLocation = currentUser?.city && currentUser?.neighborhood ? {
+    city: currentUser.city,
+    neighborhood: currentUser.neighborhood,
+    address: currentUser.address,
+    state: currentUser.stateCode,
+    country: currentUser.country,
+    zipCode: currentUser.zipCode
+  } : JSON.parse(localStorage.getItem('userLocation') || 'null');
 
   useEffect(() => {
     if (userLocation?.address) {
@@ -23,38 +51,134 @@ const UserSettings = () => {
     }
   }, [userLocation]);
 
-  const handleSetLocation = async (e) => {
+  // Mock nearby neighborhoods data
+  const mockNearbyNeighborhoods = [
+    { id: 1, name: 'Capitol Hill', distance: '0.2 miles', city: 'Seattle' },
+    { id: 2, name: 'First Hill', distance: '0.5 miles', city: 'Seattle' },
+    { id: 3, name: 'Central District', distance: '0.8 miles', city: 'Seattle' },
+    { id: 4, name: 'Madison Valley', distance: '1.2 miles', city: 'Seattle' },
+    { id: 5, name: 'Madrona', distance: '1.5 miles', city: 'Seattle' }
+  ];
+
+  const handleAddressSubmit = async (e) => {
     e.preventDefault();
-    
     if (!address.trim()) {
       toast.error('Please enter an address');
       return;
     }
 
-    const validation = validateAddress(address);
-    if (!validation.valid) {
-      toast.error(validation.error);
+    setIsLoading(true);
+    setError('');
+    setDetectedLocation(null);
+
+    try {
+      // Simulate geocoding API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock geocoding response
+      const mockLocation = {
+        address: address,
+        city: 'Seattle',
+        state: 'WA',
+        country: 'USA',
+        coordinates: [47.6062, -122.3321],
+        neighborhood: 'Capitol Hill',
+        zipCode: '98102'
+      };
+
+      setDetectedLocation(mockLocation);
+      setNearbyNeighborhoods(mockNearbyNeighborhoods);
+      setShowLocationForm(false);
+      toast.success('Location detected successfully!');
+    } catch (err) {
+      toast.error('Could not find that address. Please try a different format.');
+      console.error('Address detection error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAutoDetect = async () => {
+    setIsLoading(true);
+    try {
+      if (navigator.geolocation) {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+          });
+        });
+
+        // Simulate reverse geocoding
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const location = {
+          address: 'Auto-detected from GPS',
+          city: 'Seattle',
+          state: 'WA',
+          country: 'USA',
+          coordinates: [position.coords.latitude, position.coords.longitude],
+          neighborhood: 'Capitol Hill',
+          zipCode: '98102'
+        };
+
+        setDetectedLocation(location);
+        setNearbyNeighborhoods(mockNearbyNeighborhoods);
+        setShowLocationForm(false);
+        toast.success('Location detected from GPS!');
+      } else {
+        throw new Error('Geolocation not supported by this browser');
+      }
+    } catch (error) {
+      toast.error('Could not detect your location. Please enter your address manually.');
+      console.error('Auto-detection error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNeighborhoodSelect = (neighborhood) => {
+    setSelectedNeighborhood(neighborhood);
+  };
+
+  const handleSaveLocation = async () => {
+    if (!selectedNeighborhood) {
+      toast.error('Please select a neighborhood');
       return;
     }
 
     setIsLoading(true);
+
     try {
-      const result = await setLocationFromAddress(address);
-      if (result.success) {
-        toast.success('Location set successfully!');
-        setShowLocationForm(false);
-      } else {
-        toast.error(result.error || 'Failed to set location');
+      const locationData = {
+        ...detectedLocation,
+        neighborhood: selectedNeighborhood.name,
+        neighborhoodId: selectedNeighborhood.id.toString()
+      };
+
+      // Save to backend
+      if (updateUserLocation) {
+        await updateUserLocation(locationData);
       }
-    } catch (error) {
-      toast.error('Failed to set location');
+
+      // Save to localStorage as fallback
+      localStorage.setItem('userLocation', JSON.stringify(locationData));
+      
+      toast.success('Location updated successfully!');
+      setShowLocationForm(false);
+      setDetectedLocation(null);
+      setSelectedNeighborhood(null);
+    } catch (err) {
+      console.error('Error saving location:', err);
+      toast.error('Failed to save location. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleClearLocation = () => {
-    clearLocation();
+    localStorage.removeItem('userLocation');
     setAddress('');
     toast.success('Location cleared');
   };
@@ -64,22 +188,7 @@ const UserSettings = () => {
     navigate('/login');
   };
 
-  const handleAutoDetect = async () => {
-    setIsLoading(true);
-    try {
-      const result = await setLocationFromAddress('auto-detect');
-      if (result.success) {
-        toast.success('Location auto-detected successfully!');
-        setShowLocationForm(false);
-      } else {
-        toast.error(result.error || 'Failed to auto-detect location');
-      }
-    } catch (error) {
-      toast.error('Failed to auto-detect location');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   // Get user data with fallbacks
   const userEmail = currentUser?.email || 'Not available';
@@ -192,16 +301,16 @@ const UserSettings = () => {
                   
                   <div className="flex space-x-3">
                     <Button
-                      onClick={handleSetLocation}
+                      onClick={handleAddressSubmit}
                       disabled={isLoading || !address.trim()}
                       className="flex-1"
                     >
                       {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
-                        <MapPin className="h-4 w-4 mr-2" />
+                        <Search className="h-4 w-4 mr-2" />
                       )}
-                      Set Location
+                      Find Location
                     </Button>
                     
                     <Button
@@ -212,7 +321,7 @@ const UserSettings = () => {
                       {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
-                        <MapPin className="h-4 w-4 mr-2" />
+                        <Navigation className="h-4 w-4 mr-2" />
                       )}
                       Auto-Detect
                     </Button>
@@ -225,6 +334,80 @@ const UserSettings = () => {
                   >
                     Cancel
                   </Button>
+
+                  {/* Neighborhood Selection */}
+                  {detectedLocation && (
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-green-900 mb-1">Location Detected</h4>
+                            <div className="text-sm text-green-800 space-y-1">
+                              <p><strong>Address:</strong> {detectedLocation.address}</p>
+                              <p><strong>City:</strong> {detectedLocation.city}, {detectedLocation.state}</p>
+                              <p><strong>Detected Neighborhood:</strong> {detectedLocation.neighborhood}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Select Your Neighborhood</h4>
+                        <div className="space-y-2">
+                          {nearbyNeighborhoods.map((neighborhood) => (
+                            <div
+                              key={neighborhood.id}
+                              onClick={() => handleNeighborhoodSelect(neighborhood)}
+                              className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                                selectedNeighborhood?.id === neighborhood.id
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <Building2 className="h-4 w-4 text-gray-400" />
+                                  <div>
+                                    <p className="font-medium text-gray-900">{neighborhood.name}</p>
+                                    <p className="text-sm text-gray-500">{neighborhood.distance} away</p>
+                                  </div>
+                                </div>
+                                {selectedNeighborhood?.id === neighborhood.id && (
+                                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-3 pt-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setDetectedLocation(null);
+                            setSelectedNeighborhood(null);
+                          }}
+                          className="flex-1"
+                        >
+                          Back
+                        </Button>
+                        <Button
+                          onClick={handleSaveLocation}
+                          disabled={!selectedNeighborhood || isLoading}
+                          className="flex-1"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <Save className="h-4 w-4 mr-2" />
+                          )}
+                          Save Location
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">

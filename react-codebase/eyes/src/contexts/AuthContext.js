@@ -61,6 +61,23 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  const updateUserLocation = async (locationData) => {
+    try {
+      // Update user location in backend
+      const response = await authService.updateUserLocation(locationData);
+      
+      // Update local user state
+      if (response.success && response.user) {
+        setCurrentUser(response.user);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating user location:', error);
+      return { success: false, message: error.message };
+    }
+  };
+
   const value = {
     currentUser,
     isLoading,
@@ -69,6 +86,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUserLocation,
   };
 
   return (

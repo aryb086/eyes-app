@@ -77,7 +77,7 @@ const ModernRegister = () => {
 
     try {
       await register(formData.name, formData.username, formData.email, formData.password);
-      navigate('/feed');
+      navigate('/location-setup');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {

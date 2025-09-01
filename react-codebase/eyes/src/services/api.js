@@ -44,6 +44,7 @@ export const ENDPOINTS = {
   USERS: {
     PROFILE: '/users/profile',
     UPDATE: '/users/update',
+    UPDATE_LOCATION: '/users/update-location',
     LOCATION: '/users/location',
     NEARBY: '/users/nearby',
   },
