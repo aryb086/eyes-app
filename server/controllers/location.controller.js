@@ -130,13 +130,20 @@ exports.reverseGeocode = async (req, res, next) => {
           let country = '';
           let postalCode = '';
 
+          // Priority order for neighborhood detection
+          const neighborhoodTypes = [
+            'sublocality_level_1',
+            'sublocality_level_2', 
+            'sublocality',
+            'neighborhood',
+            'political'
+          ];
+
           for (const component of addressComponents) {
             const types = component.types;
 
             if (types.includes('locality') || types.includes('administrative_area_level_2')) {
               city = component.long_name;
-            } else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
-              neighborhood = component.long_name;
             } else if (types.includes('administrative_area_level_1')) {
               state = component.short_name;
             } else if (types.includes('country')) {
@@ -146,11 +153,31 @@ exports.reverseGeocode = async (req, res, next) => {
             }
           }
 
-          // If no neighborhood found, try to extract from formatted address
+          // Find the best neighborhood match using priority order
+          for (const neighborhoodType of neighborhoodTypes) {
+            for (const component of addressComponents) {
+              if (component.types.includes(neighborhoodType)) {
+                neighborhood = component.long_name;
+                break;
+              }
+            }
+            if (neighborhood) break;
+          }
+
+          // If still no neighborhood found, try to extract from formatted address
           if (!neighborhood && result.formatted_address) {
             const parts = result.formatted_address.split(',');
             if (parts.length > 1) {
-              neighborhood = parts[0].trim();
+              // Try to find a neighborhood-like name in the address
+              for (const part of parts) {
+                const trimmed = part.trim();
+                // Skip if it looks like a street address or city
+                if (!trimmed.match(/^\d+/) && !trimmed.includes('St') && !trimmed.includes('Ave') && 
+                    !trimmed.includes('Rd') && !trimmed.includes('Blvd') && trimmed.length > 3) {
+                  neighborhood = trimmed;
+                  break;
+                }
+              }
             }
           }
 
@@ -204,41 +231,105 @@ exports.getNearbyNeighborhoods = async (req, res, next) => {
     // Try Google Places API if available
     if (GOOGLE_MAPS_API_KEY) {
       try {
-        const response = await axios.get(PLACES_API_URL, {
-          params: {
-            location: `${lat},${lng}`,
-            radius: radius,
-            type: 'sublocality',
-            key: GOOGLE_MAPS_API_KEY
+        // Strategy 1: Search for neighborhoods using multiple place types
+        const searchStrategies = [
+          { type: 'sublocality', name: 'sublocality' },
+          { type: 'sublocality_level_1', name: 'sublocality_level_1' },
+          { type: 'sublocality_level_2', name: 'sublocality_level_2' },
+          { type: 'neighborhood', name: 'neighborhood' },
+          { type: 'political', name: 'political' }
+        ];
+
+        let allNeighborhoods = new Map(); // Use Map to avoid duplicates
+
+        // Try each search strategy
+        for (const strategy of searchStrategies) {
+          try {
+            const response = await axios.get(PLACES_API_URL, {
+              params: {
+                location: `${lat},${lng}`,
+                radius: radius,
+                type: strategy.type,
+                key: GOOGLE_MAPS_API_KEY
+              }
+            });
+
+            const data = response.data;
+
+            if (data.status === 'OK' && data.results && data.results.length > 0) {
+              data.results.forEach((place) => {
+                const distance = calculateDistance(
+                  lat, lng, 
+                  place.geometry.location.lat, 
+                  place.geometry.location.lng
+                );
+
+                // Use place_id as unique key to avoid duplicates
+                const key = place.place_id;
+                if (!allNeighborhoods.has(key)) {
+                  allNeighborhoods.set(key, {
+                    name: place.name,
+                    place_id: place.place_id,
+                    distance: Math.round(distance),
+                    coordinates: [place.geometry.location.lng, place.geometry.location.lat],
+                    types: place.types || []
+                  });
+                }
+              });
+            }
+          } catch (strategyError) {
+            console.warn(`Strategy ${strategy.name} failed:`, strategyError.message);
           }
-        });
+        }
 
-        const data = response.data;
-
-        if (data.status === 'OK' && data.results && data.results.length > 0) {
-          const neighborhoods = data.results.map((place, index) => {
-            const distance = calculateDistance(
-              lat, lng, 
-              place.geometry.location.lat, 
-              place.geometry.location.lng
-            );
-
-            return {
-              name: place.name,
-              place_id: place.place_id,
-              distance: Math.round(distance),
-              coordinates: [place.geometry.location.lng, place.geometry.location.lat]
-            };
+        // Strategy 2: Use Text Search for neighborhoods
+        try {
+          const textSearchResponse = await axios.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {
+            params: {
+              query: 'neighborhood',
+              location: `${lat},${lng}`,
+              radius: radius,
+              key: GOOGLE_MAPS_API_KEY
+            }
           });
 
-          // Sort by distance
-          neighborhoods.sort((a, b) => a.distance - b.distance);
+          const textData = textSearchResponse.data;
+          if (textData.status === 'OK' && textData.results && textData.results.length > 0) {
+            textData.results.forEach((place) => {
+              const distance = calculateDistance(
+                lat, lng, 
+                place.geometry.location.lat, 
+                place.geometry.location.lng
+              );
 
-          console.log('✅ Google Places API successful:', neighborhoods.length, 'neighborhoods found');
+              const key = place.place_id;
+              if (!allNeighborhoods.has(key)) {
+                allNeighborhoods.set(key, {
+                  name: place.name,
+                  place_id: place.place_id,
+                  distance: Math.round(distance),
+                  coordinates: [place.geometry.location.lng, place.geometry.location.lat],
+                  types: place.types || []
+                });
+              }
+            });
+          }
+        } catch (textSearchError) {
+          console.warn('Text search strategy failed:', textSearchError.message);
+        }
 
+        // Convert Map to Array and sort by distance
+        const neighborhoods = Array.from(allNeighborhoods.values());
+        neighborhoods.sort((a, b) => a.distance - b.distance);
+
+        // Limit to top 10 results
+        const topNeighborhoods = neighborhoods.slice(0, 10);
+
+        if (topNeighborhoods.length > 0) {
+          console.log('✅ Google Places API successful:', topNeighborhoods.length, 'neighborhoods found');
           return res.status(200).json({
             success: true,
-            data: neighborhoods
+            data: topNeighborhoods
           });
         }
       } catch (error) {
