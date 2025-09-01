@@ -326,12 +326,7 @@ const CityFeed = () => {
       
       setCommentText('');
       setCommentingPost(null);
-      toast.success('Comment added!');
-      
-      // Refresh posts to ensure backend sync
-      setTimeout(() => {
-        fetchPosts();
-      }, 1000);
+      toast.success('Comment posted!');
     } catch (error) {
       console.error('Failed to add comment:', error);
       toast.error('Failed to add comment');

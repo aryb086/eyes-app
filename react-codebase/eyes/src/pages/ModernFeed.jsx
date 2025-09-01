@@ -374,30 +374,6 @@ const ModernFeed = () => {
       setCommentText('');
       setCommentingPost(null);
       toast.success('Comment posted!');
-      
-      // Refresh posts to ensure backend sync, but preserve local changes
-      setTimeout(async () => {
-        try {
-          const response = await postService.getPostsByLocation({
-            city: userLocation.city,
-            neighborhood: userLocation.neighborhood,
-            limit: 20
-          });
-          
-          // Merge backend data with local optimistic changes
-          const updatedPosts = response.posts.map(backendPost => {
-            const localPost = posts.find(p => p._id === backendPost._id);
-            if (localPost && localPost.comments) {
-              return { ...backendPost, comments: localPost.comments };
-            }
-            return backendPost;
-          });
-          
-          setPosts(updatedPosts);
-        } catch (error) {
-          console.error('Failed to refresh posts:', error);
-        }
-      }, 1000);
     } catch (error) {
       console.error('Failed to add comment:', error);
       toast.error('Failed to add comment');
