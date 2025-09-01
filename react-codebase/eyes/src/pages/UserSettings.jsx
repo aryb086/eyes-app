@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
-import { detectLocationFromAddress, getNearbyNeighborhoods, reverseGeocodeCoordinates } from '../utils/locationDetection';
+import { detectLocationFromAddress, getNearbyNeighborhoods, autoDetectLocation, formatAddress } from '../utils/locationDetection';
 
 const UserSettings = () => {
   const navigate = useNavigate();
@@ -66,18 +66,22 @@ const UserSettings = () => {
     setDetectedLocation(null);
 
     try {
-      // Use the location detection utility
-      const detectedLocation = detectLocationFromAddress(address);
+      const formattedAddress = formatAddress(address);
+      const detectedLocation = await detectLocationFromAddress(formattedAddress);
       
-      // Get nearby neighborhoods for the detected location
-      const nearbyNeighborhoods = getNearbyNeighborhoods(detectedLocation.city, detectedLocation.neighborhood);
+      // Get nearby neighborhoods using coordinates
+      const nearbyNeighborhoods = await getNearbyNeighborhoods(
+        detectedLocation.coordinates[1], // latitude
+        detectedLocation.coordinates[0], // longitude
+        5000 // 5km radius
+      );
       
       setDetectedLocation(detectedLocation);
       setNearbyNeighborhoods(nearbyNeighborhoods);
       setShowLocationForm(false);
       toast.success('Location detected successfully!');
     } catch (err) {
-      toast.error('Could not find that address. Please try a different format.');
+      toast.error(err.message || 'Could not find that address. Please try a different format.');
       console.error('Address detection error:', err);
     } finally {
       setIsLoading(false);
@@ -87,30 +91,22 @@ const UserSettings = () => {
   const handleAutoDetect = async () => {
     setIsLoading(true);
     try {
-      if (navigator.geolocation) {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 60000
-          });
-        });
-
-        // Use reverse geocoding utility
-        const location = await reverseGeocodeCoordinates(position.coords.latitude, position.coords.longitude);
-        
-        // Get nearby neighborhoods for the detected location
-        const nearbyNeighborhoods = getNearbyNeighborhoods(location.city, location.neighborhood);
-        
-        setDetectedLocation(location);
-        setNearbyNeighborhoods(nearbyNeighborhoods);
-        setShowLocationForm(false);
-        toast.success('Location detected from GPS!');
-      } else {
-        throw new Error('Geolocation not supported by this browser');
-      }
+      // Use the new auto-detect function
+      const location = await autoDetectLocation();
+      
+      // Get nearby neighborhoods using coordinates
+      const nearbyNeighborhoods = await getNearbyNeighborhoods(
+        location.coordinates[1], // latitude
+        location.coordinates[0], // longitude
+        5000 // 5km radius
+      );
+      
+      setDetectedLocation(location);
+      setNearbyNeighborhoods(nearbyNeighborhoods);
+      setShowLocationForm(false);
+      toast.success('Location detected from GPS!');
     } catch (error) {
-      toast.error('Could not detect your location. Please enter your address manually.');
+      toast.error(error.message || 'Could not detect your location. Please enter your address manually.');
       console.error('Auto-detection error:', error);
     } finally {
       setIsLoading(false);

@@ -370,7 +370,7 @@ const CityFeed = () => {
   const filteredPosts = selectedCategory === 'all' 
     ? posts 
     : posts.filter(post => post.category === selectedCategory || !post.category);
-
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}

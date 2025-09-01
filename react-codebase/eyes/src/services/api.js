@@ -68,8 +68,17 @@ export const ENDPOINTS = {
   LOCATION: {
     CITIES: '/location/cities',
     NEIGHBORHOODS: '/location/neighborhoods',
-    GEOCODE: '/location/geocode',
-    REVERSE_GEOCODE: '/location/reverse-geocode',
+    CREATE_CONTAINER: '/location/containers',
+    GET_CONTAINER: '/location/containers',
+    UPDATE_CONTAINER: '/location/containers',
+    NEARBY_CONTAINERS: '/location/containers/nearby',
+    GET_POSTS: '/location/containers',
+    SEARCH: '/location/search',
+    TRENDING: '/location/trending',
+    STATS: '/location/stats',
+    SUBSCRIBE: '/location/subscribe',
+    UNSUBSCRIBE: '/location/unsubscribe',
+    SUBSCRIBED: '/location/subscribed'
   },
   
   // Health check
