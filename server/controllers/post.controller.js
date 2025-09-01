@@ -175,178 +175,20 @@ exports.createPost = async (req, res, next) => {
     if (isMultipart) {
       console.log('Content-Type includes boundary:', req.headers['content-type'].includes('boundary'));
       console.log('Full Content-Type:', req.headers['content-type']);
-      
-      // === RAW MULTIPART HANDLING ===
-      console.log('=== 🔧 RAW MULTIPART HANDLING ===');
-      console.log('Raw body type:', typeof req.body);
-      console.log('Raw body length:', req.body ? req.body.length : 'N/A');
-      
-      // Handle Buffer data from Express raw parser
-      if (req.body && Buffer.isBuffer(req.body)) {
-        console.log('=== 🔍 PARSING BUFFER DATA ===');
-        console.log('Buffer length:', req.body.length);
-        console.log('Buffer preview:', req.body.toString('utf8', 0, 200) + '...');
-        
-        // Convert buffer to string for parsing
-        const bodyString = req.body.toString('utf8');
-        console.log('Converted string length:', bodyString.length);
-        
-        // Parse multipart boundary
-        const boundaryMatch = req.headers['content-type'].match(/boundary=(.+)$/);
-        const boundary = boundaryMatch ? boundaryMatch[1] : null;
-        console.log('Detected boundary:', boundary);
-        
-        if (boundary) {
-          // Split by boundary
-          const parts = bodyString.split('--' + boundary);
-          console.log('Parts count:', parts.length);
-          
-          // Parse each part
-          const parsedFields = {};
-          const parsedFiles = {};
-          
-          parts.forEach((part, index) => {
-            if (index === 0 || index === parts.length - 1) return; // Skip first and last parts
-            
-            console.log(`\n--- Part ${index} ---`);
-            console.log('Part preview:', part.substring(0, 200) + '...');
-            
-            // Extract field name and value
-            const fieldMatch = part.match(/name="([^"]+)"/);
-            const filenameMatch = part.match(/filename="([^"]+)"/);
-            const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
-            
-            if (fieldMatch) {
-              const fieldName = fieldMatch[1];
-              console.log('Field name:', fieldName);
-              
-              if (filenameMatch) {
-                // This is a file
-                const filename = filenameMatch[1];
-                const contentType = contentTypeMatch ? contentTypeMatch[1] : 'application/octet-stream';
-                console.log('File detected:', filename, 'Type:', contentType);
-                
-                // Extract file content (everything after the headers)
-                const contentStart = part.indexOf('\r\n\r\n');
-                if (contentStart !== -1) {
-                  const fileContent = part.substring(contentStart + 4);
-                  parsedFiles[fieldName] = {
-                    filename,
-                    contentType,
-                    content: fileContent
-                  };
-                  console.log('File content length:', fileContent.length);
-                }
-              } else {
-                // This is a regular field
-                const valueStart = part.indexOf('\r\n\r\n');
-                if (valueStart !== -1) {
-                  const value = part.substring(valueStart + 4).trim();
-                  parsedFields[fieldName] = value;
-                  console.log('Field value:', value);
-                }
-              }
-            }
-          });
-          
-          console.log('\n=== 📊 PARSED DATA SUMMARY ===');
-          console.log('Parsed fields:', Object.keys(parsedFields));
-          console.log('Parsed files:', Object.keys(parsedFiles));
-          console.log('Content field:', parsedFields.content);
-          console.log('Image field:', parsedFiles.image ? 'Present' : 'Missing');
-          
-          // Use parsed data instead of req.body
-          req.body = parsedFields;
-          req.file = parsedFiles.image ? {
-            fieldname: 'image',
-            originalname: parsedFiles.image.filename,
-            mimetype: parsedFiles.image.contentType,
-            buffer: Buffer.from(parsedFiles.image.content, 'binary')
-          } : null;
-          
-          console.log('Updated req.body keys:', Object.keys(req.body));
-          console.log('Updated req.file:', req.file ? 'Present' : 'Missing');
-        }
-      } else if (req.body && typeof req.body === 'string') {
-        console.log('=== 🔍 PARSING RAW MULTIPART DATA ===');
-        
-        // Parse multipart boundary
-        const boundaryMatch = req.headers['content-type'].match(/boundary=(.+)$/);
-        const boundary = boundaryMatch ? boundaryMatch[1] : null;
-        console.log('Detected boundary:', boundary);
-        
-        if (boundary) {
-          // Split by boundary
-          const parts = req.body.split('--' + boundary);
-          console.log('Parts count:', parts.length);
-          
-          // Parse each part
-          const parsedFields = {};
-          const parsedFiles = {};
-          
-          parts.forEach((part, index) => {
-            if (index === 0 || index === parts.length - 1) return; // Skip first and last parts
-            
-            console.log(`\n--- Part ${index} ---`);
-            console.log('Part preview:', part.substring(0, 200) + '...');
-            
-            // Extract field name and value
-            const fieldMatch = part.match(/name="([^"]+)"/);
-            const filenameMatch = part.match(/filename="([^"]+)"/);
-            const contentTypeMatch = part.match(/Content-Type: ([^\r\n]+)/);
-            
-            if (fieldMatch) {
-              const fieldName = fieldMatch[1];
-              console.log('Field name:', fieldName);
-              
-              if (filenameMatch) {
-                // This is a file
-                const filename = filenameMatch[1];
-                const contentType = contentTypeMatch ? contentTypeMatch[1] : 'application/octet-stream';
-                console.log('File detected:', filename, 'Type:', contentType);
-                
-                // Extract file content (everything after the headers)
-                const contentStart = part.indexOf('\r\n\r\n');
-                if (contentStart !== -1) {
-                  const fileContent = part.substring(contentStart + 4);
-                  parsedFiles[fieldName] = {
-                    filename,
-                    contentType,
-                    content: fileContent
-                  };
-                  console.log('File content length:', fileContent.length);
-                }
-              } else {
-                // This is a regular field
-                const valueStart = part.indexOf('\r\n\r\n');
-                if (valueStart !== -1) {
-                  const value = part.substring(valueStart + 4).trim();
-                  parsedFields[fieldName] = value;
-                  console.log('Field value:', value);
-                }
-              }
-            }
-          });
-          
-          console.log('\n=== 📊 PARSED DATA SUMMARY ===');
-          console.log('Parsed fields:', Object.keys(parsedFields));
-          console.log('Parsed files:', Object.keys(parsedFiles));
-          console.log('Content field:', parsedFields.content);
-          console.log('Image field:', parsedFiles.image ? 'Present' : 'Missing');
-          
-          // Use parsed data instead of req.body
-          req.body = parsedFields;
-          req.file = parsedFiles.image ? {
-            fieldname: 'image',
-            originalname: parsedFiles.image.filename,
-            mimetype: parsedFiles.image.contentType,
-            buffer: Buffer.from(parsedFiles.image.content, 'binary')
-          } : null;
-          
-          console.log('Updated req.body keys:', Object.keys(req.body));
-          console.log('Updated req.file:', req.file ? 'Present' : 'Missing');
-        }
-      }
+    }
+    
+    // === MULTER DATA ANALYSIS ===
+    console.log('=== 🔧 MULTER DATA ANALYSIS ===');
+    console.log('Body type:', typeof req.body);
+    console.log('Body keys:', Object.keys(req.body || {}));
+    console.log('File present:', !!req.file);
+    if (req.file) {
+      console.log('File details:', {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      });
     }
     
     // === USER LOOKUP ANALYSIS ===

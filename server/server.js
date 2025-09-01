@@ -61,10 +61,6 @@ if (config.env === 'development') {
   app.use(morgan('dev'));
 }
 
-// Raw body parser for multipart requests (when multer is disabled)
-// This MUST come BEFORE the standard body parsers to intercept multipart requests
-app.use('/api/v1/posts', express.raw({ type: 'multipart/form-data', limit: '10mb' }));
-
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
