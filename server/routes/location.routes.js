@@ -1,18 +1,21 @@
 const express = require('express');
+const {
+  geocodeAddress,
+  reverseGeocode,
+  getNearbyNeighborhoods,
+  getCities,
+  getNeighborhoods
+} = require('../controllers/location.controller');
+
 const router = express.Router();
-const { protect } = require('../middlewares/auth.middleware');
 
-// Import location controller
-const locationController = require('../controllers/location.controller');
+// Geocoding routes
+router.post('/geocode', geocodeAddress);
+router.post('/reverse-geocode', reverseGeocode);
+router.post('/nearby-neighborhoods', getNearbyNeighborhoods);
 
-// Public routes (no authentication required)
-router.get('/cities', locationController.getCities);
-router.get('/neighborhoods', locationController.getNeighborhoods);
-router.get('/geocode', locationController.geocodeAddress);
-router.get('/reverse-geocode', locationController.reverseGeocode);
-
-// Protected routes (authentication required)
-router.post('/cities', protect, locationController.createCity);
-router.post('/neighborhoods', protect, locationController.createNeighborhood);
+// Static location data routes
+router.get('/cities', getCities);
+router.get('/neighborhoods', getNeighborhoods);
 
 module.exports = router;

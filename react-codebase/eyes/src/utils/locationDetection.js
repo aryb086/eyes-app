@@ -1,12 +1,7 @@
 // Real geocoding utility for parsing addresses and detecting cities/neighborhoods
-// Uses Google Maps Geocoding API for accurate location detection
+// Uses backend API endpoints that communicate with Google Maps API
 
-// Google Maps API Key - you'll need to add this to your environment variables
-const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-
-// Geocoding API endpoints
-const GEOCODING_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
-const REVERSE_GEOCODING_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
+import api, { ENDPOINTS } from '../services/api';
 
 // Fallback location data for development/testing when API key is not available
 const FALLBACK_LOCATIONS = {
@@ -36,13 +31,7 @@ const FALLBACK_LOCATIONS = {
   }
 };
 
-/**
- * Check if Google Maps API is available
- * @returns {boolean}
- */
-const isGoogleMapsAvailable = () => {
-  return !!GOOGLE_MAPS_API_KEY;
-};
+
 
 /**
  * Fallback geocoding using simple text matching
@@ -120,121 +109,50 @@ const fallbackReverseGeocode = async (lat, lng) => {
 };
 
 /**
- * Convert address to coordinates using Google Geocoding API
+ * Convert address to coordinates using backend geocoding API
  * @param {string} address - The address to geocode
  * @returns {Promise<{lat: number, lng: number, formatted_address: string}>}
  */
 export const geocodeAddress = async (address) => {
   try {
-    if (!isGoogleMapsAvailable()) {
-      console.warn('Google Maps API key not available, using fallback geocoding');
-      return await fallbackGeocodeAddress(address);
+    console.log('🌍 Geocoding address via backend:', address);
+    
+    const response = await api.post('/location/geocode', { address });
+    
+    if (response.success && response.data) {
+      console.log('✅ Backend geocoding successful:', response.data);
+      return response.data;
     }
-
-    const response = await fetch(
-      `${GEOCODING_API_URL}?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Geocoding API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-      throw new Error(`Geocoding failed: ${data.status} - ${data.error_message || 'No results found'}`);
-    }
-
-    const result = data.results[0];
-    const { lat, lng } = result.geometry.location;
-    const formattedAddress = result.formatted_address;
-
-    return {
-      lat,
-      lng,
-      formatted_address: formattedAddress,
-      place_id: result.place_id
-    };
+    
+    throw new Error('Backend geocoding failed');
   } catch (error) {
     console.error('Geocoding error:', error);
-    // Fallback to simple geocoding if API fails
+    // Fallback to simple geocoding if backend fails
     return await fallbackGeocodeAddress(address);
   }
 };
 
 /**
- * Convert coordinates to address using Google Reverse Geocoding API
+ * Convert coordinates to address using backend reverse geocoding API
  * @param {number} lat - Latitude
  * @param {number} lng - Longitude
  * @returns {Promise<{city: string, neighborhood: string, state: string, country: string, formatted_address: string}>}
  */
 export const reverseGeocodeCoordinates = async (lat, lng) => {
   try {
-    if (!isGoogleMapsAvailable()) {
-      console.warn('Google Maps API key not available, using fallback reverse geocoding');
-      return await fallbackReverseGeocode(lat, lng);
+    console.log('🌍 Reverse geocoding coordinates via backend:', { lat, lng });
+    
+    const response = await api.post('/location/reverse-geocode', { lat, lng });
+    
+    if (response.success && response.data) {
+      console.log('✅ Backend reverse geocoding successful:', response.data);
+      return response.data;
     }
-
-    const response = await fetch(
-      `${REVERSE_GEOCODING_API_URL}?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Reverse geocoding API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-      throw new Error(`Reverse geocoding failed: ${data.status} - ${data.error_message || 'No results found'}`);
-    }
-
-    const result = data.results[0];
-    const addressComponents = result.address_components;
-
-    // Extract location information from address components
-    let city = '';
-    let neighborhood = '';
-    let state = '';
-    let country = '';
-    let postalCode = '';
-
-    for (const component of addressComponents) {
-      const types = component.types;
-
-      if (types.includes('locality') || types.includes('administrative_area_level_2')) {
-        city = component.long_name;
-      } else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
-        neighborhood = component.long_name;
-      } else if (types.includes('administrative_area_level_1')) {
-        state = component.short_name;
-      } else if (types.includes('country')) {
-        country = component.long_name;
-      } else if (types.includes('postal_code')) {
-        postalCode = component.long_name;
-      }
-    }
-
-    // If no neighborhood found, try to extract from formatted address
-    if (!neighborhood && result.formatted_address) {
-      const parts = result.formatted_address.split(',');
-      if (parts.length > 1) {
-        neighborhood = parts[0].trim();
-      }
-    }
-
-    return {
-      city,
-      neighborhood,
-      state,
-      country,
-      postal_code: postalCode,
-      formatted_address: result.formatted_address,
-      place_id: result.place_id
-    };
+    
+    throw new Error('Backend reverse geocoding failed');
   } catch (error) {
     console.error('Reverse geocoding error:', error);
-    // Fallback to simple reverse geocoding if API fails
+    // Fallback to simple reverse geocoding if backend fails
     return await fallbackReverseGeocode(lat, lng);
   }
 };
@@ -269,7 +187,7 @@ export const detectLocationFromAddress = async (address) => {
 };
 
 /**
- * Get nearby neighborhoods using Google Places API or fallback
+ * Get nearby neighborhoods using backend API
  * @param {number} lat - Latitude
  * @param {number} lng - Longitude
  * @param {number} radius - Search radius in meters (default: 5000)
@@ -277,49 +195,19 @@ export const detectLocationFromAddress = async (address) => {
  */
 export const getNearbyNeighborhoods = async (lat, lng, radius = 5000) => {
   try {
-    if (!isGoogleMapsAvailable()) {
-      console.warn('Google Maps API key not available, using fallback neighborhoods');
-      return getFallbackNeighborhoods(lat, lng);
+    console.log('🌍 Getting nearby neighborhoods via backend:', { lat, lng, radius });
+    
+    const response = await api.post('/location/nearby-neighborhoods', { lat, lng, radius });
+    
+    if (response.success && response.data) {
+      console.log('✅ Backend nearby neighborhoods successful:', response.data.length, 'neighborhoods found');
+      return response.data;
     }
-
-    // Use Places API to find nearby neighborhoods
-    const placesResponse = await fetch(
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=sublocality&key=${GOOGLE_MAPS_API_KEY}`
-    );
-
-    if (!placesResponse.ok) {
-      throw new Error(`Places API request failed: ${placesResponse.status}`);
-    }
-
-    const placesData = await placesResponse.json();
-
-    if (placesData.status !== 'OK' && placesData.status !== 'ZERO_RESULTS') {
-      throw new Error(`Places API failed: ${placesData.status} - ${placesData.error_message || 'Request failed'}`);
-    }
-
-    const neighborhoods = [];
-
-    if (placesData.results && placesData.results.length > 0) {
-      for (const place of placesData.results) {
-        // Calculate distance from original location
-        const distance = calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng);
-        
-        neighborhoods.push({
-          name: place.name,
-          place_id: place.place_id,
-          distance: Math.round(distance),
-          coordinates: [place.geometry.location.lng, place.geometry.location.lat]
-        });
-      }
-
-      // Sort by distance
-      neighborhoods.sort((a, b) => a.distance - b.distance);
-    }
-
-    return neighborhoods;
+    
+    throw new Error('Backend nearby neighborhoods failed');
   } catch (error) {
     console.error('Nearby neighborhoods error:', error);
-    // Fallback to simple neighborhoods if API fails
+    // Fallback to simple neighborhoods if backend fails
     return getFallbackNeighborhoods(lat, lng);
   }
 };
