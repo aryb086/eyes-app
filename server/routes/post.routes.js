@@ -46,6 +46,7 @@ router.post(
   (req, res, next) => {
     console.log('🔍 DEBUG: Content-Type header:', req.headers['content-type']);
     console.log('🔍 DEBUG: Is multipart:', req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data'));
+    console.log('🔍 DEBUG: All headers:', JSON.stringify(req.headers, null, 2));
     
     if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
       console.log('🔍 DEBUG: Applying multer middleware');
