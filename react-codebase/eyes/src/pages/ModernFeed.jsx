@@ -11,12 +11,15 @@ import postService from "../services/postService";
 import RealtimeIndicator from "../components/RealtimeIndicator";
 import { toast } from "react-hot-toast";
 
-// Post categories
+// Post categories - aligned with backend Post model
 const POST_CATEGORIES = [
-  { id: 'crime', label: 'Crime', color: 'bg-red-100 text-red-800' },
-  { id: 'infrastructure', label: 'Infrastructure', color: 'bg-blue-100 text-blue-800' },
-  { id: 'event', label: 'Event', color: 'bg-green-100 text-green-800' },
-  { id: 'general', label: 'General', color: 'bg-gray-100 text-gray-800' }
+  { id: 'general', label: 'General', color: 'bg-gray-100 text-gray-800' },
+  { id: 'news', label: 'News', color: 'bg-blue-100 text-blue-800' },
+  { id: 'events', label: 'Events', color: 'bg-green-100 text-green-800' },
+  { id: 'safety', label: 'Safety', color: 'bg-red-100 text-red-800' },
+  { id: 'community', label: 'Community', color: 'bg-purple-100 text-purple-800' },
+  { id: 'business', label: 'Business', color: 'bg-yellow-100 text-yellow-800' },
+  { id: 'infrastructure', label: 'Infrastructure', color: 'bg-orange-100 text-orange-800' }
 ];
 
 const ModernFeed = () => {
@@ -427,9 +430,8 @@ const ModernFeed = () => {
     navigate('/login');
   };
 
-  const filteredPosts = selectedCategory === 'all' 
-    ? posts 
-    : posts.filter(post => post.category === selectedCategory || !post.category);
+  // Use posts directly since backend already filters by category
+  const filteredPosts = posts;
 
   return (
     <div className="min-h-screen bg-background">
