@@ -177,6 +177,7 @@ export const detectLocationFromAddress = async (address) => {
       country: reverseResult.country,
       postal_code: reverseResult.postal_code,
       coordinates: [geocodeResult.lng, geocodeResult.lat], // GeoJSON format: [longitude, latitude]
+      address: reverseResult.formatted_address, // Add address field for UI compatibility
       formatted_address: reverseResult.formatted_address,
       place_id: reverseResult.place_id
     };
@@ -298,6 +299,7 @@ export const autoDetectLocation = () => {
             lat: latitude,
             lng: longitude,
             coordinates: [longitude, latitude],
+            address: locationInfo.formatted_address, // Add address field for UI compatibility
             ...locationInfo
           });
         } catch (error) {
