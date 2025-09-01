@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import PostCard from '../components/PostCard';
-import { Eye, Menu, MapPin, User, Plus, Heart, MessageCircle, Share2, MoreVertical } from 'lucide-react';
+import { Eye, Menu, MapPin, User, Plus, Heart, MessageCircle, Share2, MoreVertical, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { useRealtime } from '../contexts/RealtimeContext';
