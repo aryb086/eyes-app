@@ -37,6 +37,16 @@ const CityFeed = () => {
   const [commentingPost, setCommentingPost] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [sharingPost, setSharingPost] = useState(null);
+
+  // Function to clear all post creator data
+  const clearPostData = () => {
+    setNewPost({ 
+      content: "", 
+      category: "general",
+      image: null 
+    });
+    setImagePreview(null);
+  };
   
   const navigate = useNavigate();
   const { logout: authLogout } = useAuth();
@@ -615,9 +625,9 @@ const CityFeed = () => {
       {/* Create Post Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl">
+          <div className="bg-background rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl border border-border">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 flex-shrink-0">
+            <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <img
                   src="https://randomuser.me/api/portraits/lego/1.jpg"
@@ -625,9 +635,9 @@ const CityFeed = () => {
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Create Post</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Create Post</h2>
                   {userLocation && (
-                    <p className="text-sm text-gray-500 flex items-center">
+                    <p className="text-sm text-muted-foreground flex items-center">
                       <MapPin className="h-3 w-3 mr-1" />
                       {userLocation.neighborhood}, {userLocation.city}
                     </p>
@@ -637,8 +647,11 @@ const CityFeed = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowCreateModal(false)}
-                className="h-8 w-8 p-0 rounded-full hover:bg-gray-100"
+                onClick={() => {
+                  clearPostData();
+                  setShowCreateModal(false);
+                }}
+                className="h-8 w-8 p-0 rounded-full hover:bg-muted"
               >
                 <span className="text-xl">×</span>
               </Button>
@@ -653,7 +666,7 @@ const CityFeed = () => {
                   value={newPost.content}
                   onChange={(e) => setNewPost({...newPost, content: e.target.value})}
                   placeholder="What's happening in your area?"
-                  className="w-full h-32 px-0 py-0 border-0 resize-none text-gray-900 placeholder-gray-500 focus:outline-none text-lg"
+                  className="w-full h-32 px-0 py-0 border-0 resize-none text-foreground placeholder-muted-foreground focus:outline-none text-lg bg-transparent"
                   required
                 />
               </div>
@@ -683,7 +696,7 @@ const CityFeed = () => {
               
               {/* Category Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Category</label>
+                <label className="block text-sm font-medium text-foreground mb-3">Category</label>
                 <div className="grid grid-cols-2 gap-2">
                   {POST_CATEGORIES.filter(c => c.id !== 'all').map(category => (
                     <button
@@ -692,8 +705,8 @@ const CityFeed = () => {
                       onClick={() => setNewPost({...newPost, category: category.id})}
                       className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                         newPost.category === category.id
-                          ? `${category.color} ring-2 ring-blue-500 ring-offset-2`
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? `${category.color} ring-2 ring-primary ring-offset-2`
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
                       }`}
                     >
                       {category.label}
@@ -705,8 +718,8 @@ const CityFeed = () => {
               {/* Image Upload */}
               {!imagePreview && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Add Image (Optional)</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+                  <label className="block text-sm font-medium text-foreground mb-3">Add Image (Optional)</label>
+                  <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -715,9 +728,9 @@ const CityFeed = () => {
                       id="image-upload"
                     />
                     <label htmlFor="image-upload" className="cursor-pointer">
-                      <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600 font-medium">Click to upload image</p>
-                      <p className="text-sm text-gray-500 mt-1">JPG, PNG up to 5MB</p>
+                      <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-foreground font-medium">Click to upload image</p>
+                      <p className="text-sm text-muted-foreground mt-1">JPG, PNG up to 5MB</p>
                     </label>
                   </div>
                 </div>
@@ -743,11 +756,14 @@ const CityFeed = () => {
               ) : null}
               
               {/* Action Buttons */}
-              <div className="flex space-x-3 pt-4 border-t border-gray-100">
+              <div className="flex space-x-3 pt-4 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    clearPostData();
+                    setShowCreateModal(false);
+                  }}
                   className="flex-1 h-12 rounded-xl"
                 >
                   Cancel
