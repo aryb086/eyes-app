@@ -291,37 +291,37 @@ const CityFeed = () => {
     }
   };
 
-  const handleSubmitComment = async (postId) => {
-    if (!commentText.trim()) return;
+  const handleSubmitComment = async (postId, commentContent) => {
+    if (!commentContent.trim()) return;
     
     try {
-      // Create comment object
-      const newComment = {
-        _id: Date.now().toString(),
-        content: commentText,
-        author: { 
-          username: 'You', 
-          fullName: 'You',
-          avatar: userLocation?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'
+      // Send comment to backend API
+      const response = await fetch(`${API_URL}/comments/${postId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        createdAt: new Date().toISOString()
-      };
+        body: JSON.stringify({
+          content: commentContent
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to post comment');
+      }
+
+      const result = await response.json();
       
-      // Optimistically update UI
+      // Update the posts with the new comment
       setPosts(posts.map(post => 
         post._id === postId 
           ? { 
               ...post, 
-              comments: [...(post.comments || []), newComment]
+              comments: [...(post.comments || []), result.data]
             }
           : post
       ));
-      
-      // TODO: Send comment to backend via WebSocket or API
-      if (isConnected) {
-        // Send via WebSocket if available
-        console.log('Sending comment via WebSocket:', { postId, comment: newComment });
-      }
       
       setCommentText('');
       setCommentingPost(null);
