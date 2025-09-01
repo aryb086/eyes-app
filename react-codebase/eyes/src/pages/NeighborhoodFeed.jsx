@@ -615,9 +615,9 @@ const NeighborhoodFeed = () => {
       {/* Create Post Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <img
                   src="https://randomuser.me/api/portraits/lego/1.jpg"
@@ -644,8 +644,9 @@ const NeighborhoodFeed = () => {
               </Button>
             </div>
             
-            {/* Content */}
-            <form onSubmit={handleCreatePost} className="p-6 space-y-6">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              <form onSubmit={handleCreatePost} className="p-6 space-y-6">
               {/* Text Area */}
               <div>
                 <textarea
@@ -760,6 +761,7 @@ const NeighborhoodFeed = () => {
                 </Button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
