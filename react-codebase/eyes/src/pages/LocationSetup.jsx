@@ -110,6 +110,12 @@ const LocationSetup = () => {
     setIsSaving(true);
 
     try {
+      // Debug logging to help identify the issue
+      console.log('🔍 Debug selectedNeighborhood:', selectedNeighborhood);
+      console.log('🔍 Debug place_id:', selectedNeighborhood.place_id);
+      console.log('🔍 Debug id:', selectedNeighborhood.id);
+      console.log('🔍 Debug name:', selectedNeighborhood.name);
+
       const locationData = {
         ...detectedLocation,
         neighborhood: selectedNeighborhood.name,
