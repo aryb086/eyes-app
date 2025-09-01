@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent } from './ui/card';
-import { Button } from './ui/button';
+import { Card, CardHeader, CardContent } from './ui/Card';
+import { Button } from './ui/Button';
 import { 
   Heart, 
   MessageCircle, 
