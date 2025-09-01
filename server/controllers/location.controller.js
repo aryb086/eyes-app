@@ -319,7 +319,14 @@ exports.getNearbyNeighborhoods = async (req, res, next) => {
           'subdivision',
           'community',
           'area',
-          'district'
+          'district',
+          'HOA',
+          'homeowners association',
+          'ridge',
+          'heights',
+          'hills',
+          'village',
+          'estates'
         ];
 
         for (const query of textSearchQueries) {
@@ -356,6 +363,53 @@ exports.getNearbyNeighborhoods = async (req, res, next) => {
             }
           } catch (textSearchError) {
             console.warn(`Text search for "${query}" failed:`, textSearchError.message);
+          }
+        }
+
+        // Strategy 3: Search for specific known neighborhood names in the area
+        // This helps catch neighborhoods that might not be tagged properly
+        const knownNeighborhoodSearches = [
+          'Timberline',
+          'Sahalee', 
+          'Viewpoint',
+          'Cascade View',
+          'Montrachet'
+        ];
+
+        for (const searchTerm of knownNeighborhoodSearches) {
+          try {
+            const specificSearchResponse = await axios.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {
+              params: {
+                query: `${searchTerm} Sammamish WA`,
+                location: `${lat},${lng}`,
+                radius: radius,
+                key: GOOGLE_MAPS_API_KEY
+              }
+            });
+
+            const specificData = specificSearchResponse.data;
+            if (specificData.status === 'OK' && specificData.results && specificData.results.length > 0) {
+              specificData.results.forEach((place) => {
+                const distance = calculateDistance(
+                  lat, lng, 
+                  place.geometry.location.lat, 
+                  place.geometry.location.lng
+                );
+
+                const key = place.place_id;
+                if (!allNeighborhoods.has(key)) {
+                  allNeighborhoods.set(key, {
+                    name: place.name,
+                    place_id: place.place_id,
+                    distance: Math.round(distance),
+                    coordinates: [place.geometry.location.lng, place.geometry.location.lat],
+                    types: place.types || []
+                  });
+                }
+              });
+            }
+          } catch (specificSearchError) {
+            console.warn(`Specific search for "${searchTerm}" failed:`, specificSearchError.message);
           }
         }
 
