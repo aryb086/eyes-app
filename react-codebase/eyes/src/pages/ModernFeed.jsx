@@ -153,13 +153,15 @@ const ModernFeed = () => {
         category: newPost.category,
         city: userLocation.city,
         neighborhood: userLocation.neighborhood,
-        cityId: userLocation.city,
+        cityId: userLocation.cityId || userLocation.city, // Use cityId if available, fallback to city name
         stateCode: "Demo State",
         scope: "neighborhood",
         location: {
           type: "Point",
           coordinates: userLocation.coordinates || [0, 0]
-        }
+        },
+        locationType: "Point",
+        coordinates: userLocation.coordinates || [0, 0]
       };
 
       // Always create post in backend first, then notify WebSocket
@@ -176,7 +178,8 @@ const ModernFeed = () => {
           formData.append('cityId', postData.cityId);
           formData.append('stateCode', postData.stateCode);
           formData.append('scope', postData.scope);
-          formData.append('location', JSON.stringify(postData.location));
+          formData.append('locationType', postData.locationType);
+          formData.append('coordinates', JSON.stringify(postData.coordinates));
           
           const createdPost = await postService.createPost(formData);
           console.log('Post created in backend:', createdPost);
