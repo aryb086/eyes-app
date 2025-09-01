@@ -17,6 +17,11 @@ router.get('/', auth.authorize('admin'), userController.getUsers);
 // @access  Public
 router.get('/search', userController.searchUsers);
 
+// @route   PUT /api/users/update-location
+// @desc    Update user location
+// @access  Private
+router.put('/update-location', userController.updateUserLocation);
+
 // @route   GET /api/users/:id
 // @desc    Get user by ID
 // @access  Public
@@ -58,10 +63,5 @@ router.get('/followers/:id', userController.getUserFollowers);
 // @desc    Get users that a user is following
 // @access  Public
 router.get('/following/:id', userController.getUserFollowing);
-
-// @route   PUT /api/users/update-location
-// @desc    Update user location
-// @access  Private
-router.put('/update-location', userController.updateUserLocation);
 
 module.exports = router;
