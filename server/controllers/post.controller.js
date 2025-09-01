@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
+const Comment = require('../models/Comment');
 const ErrorResponse = require('../utils/errorResponse');
 const mongoose = require('mongoose');
 
@@ -516,6 +517,39 @@ exports.deletePost = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {}
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Clear all posts (admin only)
+// @route   DELETE /api/posts/clear-all
+// @access  Private (Admin only)
+exports.clearAllPosts = async (req, res, next) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return next(
+        new ErrorResponse('Not authorized to perform this action', 403)
+      );
+    }
+
+    // Delete all comments first
+    const deletedComments = await Comment.deleteMany({});
+    console.log(`Deleted ${deletedComments.deletedCount} comments`);
+
+    // Delete all posts
+    const deletedPosts = await Post.deleteMany({});
+    console.log(`Deleted ${deletedPosts.deletedCount} posts`);
+
+    res.status(200).json({
+      success: true,
+      message: 'All posts and comments cleared successfully',
+      data: {
+        deletedPosts: deletedPosts.deletedCount,
+        deletedComments: deletedComments.deletedCount
+      }
     });
   } catch (err) {
     next(err);

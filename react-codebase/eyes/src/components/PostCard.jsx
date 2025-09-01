@@ -173,7 +173,7 @@ const PostCard = ({
         
         {/* Comments Section */}
         {showComments && (
-          <div className="pt-4 border-t border-gray-100 space-y-4">
+          <div className="pt-4 border-t border-border space-y-4">
             {/* Existing Comments */}
             {post.comments && post.comments.length > 0 && (
               <div className="space-y-3">
@@ -213,7 +213,7 @@ const PostCard = ({
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Write a comment..."
-                  className="w-full px-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-border rounded-full text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
               <Button
