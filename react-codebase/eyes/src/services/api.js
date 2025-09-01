@@ -93,7 +93,11 @@ export const apiRequest = async (endpoint, options = {}) => {
   };
 
   // Only set Content-Type for non-FormData requests
-  if (!(options.body instanceof FormData)) {
+  // Check if body is FormData or if Content-Type is explicitly set to multipart
+  const isFormData = options.body instanceof FormData || 
+                    options.headers?.['Content-Type']?.includes('multipart/form-data');
+  
+  if (!isFormData) {
     defaultOptions.headers['Content-Type'] = 'application/json';
   }
 
