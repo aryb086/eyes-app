@@ -130,19 +130,11 @@ exports.reverseGeocode = async (req, res, next) => {
           let country = '';
           let postalCode = '';
 
-          // Priority order for neighborhood detection
-          const neighborhoodTypes = [
-            'sublocality_level_1',
-            'sublocality_level_2', 
-            'sublocality',
-            'neighborhood',
-            'political'
-          ];
-
+          // First pass: extract basic components
           for (const component of addressComponents) {
             const types = component.types;
 
-            if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+            if (types.includes('locality')) {
               city = component.long_name;
             } else if (types.includes('administrative_area_level_1')) {
               state = component.short_name;
@@ -153,28 +145,67 @@ exports.reverseGeocode = async (req, res, next) => {
             }
           }
 
-          // Find the best neighborhood match using priority order
+          // Second pass: find neighborhood with better logic
+          // Priority order for neighborhood detection (most specific first)
+          const neighborhoodTypes = [
+            'sublocality_level_1',  // Most specific neighborhood
+            'sublocality_level_2', 
+            'sublocality',
+            'neighborhood',
+            'political'
+          ];
+
+          // Look for neighborhood components
           for (const neighborhoodType of neighborhoodTypes) {
             for (const component of addressComponents) {
               if (component.types.includes(neighborhoodType)) {
-                neighborhood = component.long_name;
-                break;
+                // Make sure it's not the same as the city
+                if (component.long_name !== city) {
+                  neighborhood = component.long_name;
+                  break;
+                }
               }
             }
             if (neighborhood) break;
           }
 
-          // If still no neighborhood found, try to extract from formatted address
+          // If no neighborhood found, try to extract from formatted address
           if (!neighborhood && result.formatted_address) {
             const parts = result.formatted_address.split(',');
             if (parts.length > 1) {
-              // Try to find a neighborhood-like name in the address
+              // Look for neighborhood-like names in the address
               for (const part of parts) {
                 const trimmed = part.trim();
-                // Skip if it looks like a street address or city
-                if (!trimmed.match(/^\d+/) && !trimmed.includes('St') && !trimmed.includes('Ave') && 
-                    !trimmed.includes('Rd') && !trimmed.includes('Blvd') && trimmed.length > 3) {
+                // Skip if it looks like a street address, city, or state
+                if (!trimmed.match(/^\d+/) && 
+                    !trimmed.includes('St') && 
+                    !trimmed.includes('Ave') && 
+                    !trimmed.includes('Rd') && 
+                    !trimmed.includes('Blvd') && 
+                    !trimmed.includes('WA') &&
+                    !trimmed.includes('USA') &&
+                    trimmed !== city &&
+                    trimmed.length > 3) {
                   neighborhood = trimmed;
+                  break;
+                }
+              }
+            }
+          }
+
+          // Special case: if we still don't have a neighborhood, try to use the street name
+          // as a neighborhood indicator (common in suburban areas)
+          if (!neighborhood && result.formatted_address) {
+            const addressParts = result.formatted_address.split(',')[0].trim();
+            const streetParts = addressParts.split(' ');
+            if (streetParts.length > 2) {
+              // Look for neighborhood-like words in the street address
+              for (let i = 1; i < streetParts.length; i++) {
+                const word = streetParts[i];
+                if (word.length > 3 && 
+                    !word.match(/^\d+/) && 
+                    !['St', 'Ave', 'Rd', 'Blvd', 'Dr', 'Ln', 'Way', 'Pl', 'Ct'].includes(word)) {
+                  neighborhood = word;
                   break;
                 }
               }
@@ -282,40 +313,50 @@ exports.getNearbyNeighborhoods = async (req, res, next) => {
           }
         }
 
-        // Strategy 2: Use Text Search for neighborhoods
-        try {
-          const textSearchResponse = await axios.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {
-            params: {
-              query: 'neighborhood',
-              location: `${lat},${lng}`,
-              radius: radius,
-              key: GOOGLE_MAPS_API_KEY
-            }
-          });
+        // Strategy 2: Use Text Search for neighborhoods and specific area names
+        const textSearchQueries = [
+          'neighborhood',
+          'subdivision',
+          'community',
+          'area',
+          'district'
+        ];
 
-          const textData = textSearchResponse.data;
-          if (textData.status === 'OK' && textData.results && textData.results.length > 0) {
-            textData.results.forEach((place) => {
-              const distance = calculateDistance(
-                lat, lng, 
-                place.geometry.location.lat, 
-                place.geometry.location.lng
-              );
-
-              const key = place.place_id;
-              if (!allNeighborhoods.has(key)) {
-                allNeighborhoods.set(key, {
-                  name: place.name,
-                  place_id: place.place_id,
-                  distance: Math.round(distance),
-                  coordinates: [place.geometry.location.lng, place.geometry.location.lat],
-                  types: place.types || []
-                });
+        for (const query of textSearchQueries) {
+          try {
+            const textSearchResponse = await axios.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {
+              params: {
+                query: query,
+                location: `${lat},${lng}`,
+                radius: radius,
+                key: GOOGLE_MAPS_API_KEY
               }
             });
+
+            const textData = textSearchResponse.data;
+            if (textData.status === 'OK' && textData.results && textData.results.length > 0) {
+              textData.results.forEach((place) => {
+                const distance = calculateDistance(
+                  lat, lng, 
+                  place.geometry.location.lat, 
+                  place.geometry.location.lng
+                );
+
+                const key = place.place_id;
+                if (!allNeighborhoods.has(key)) {
+                  allNeighborhoods.set(key, {
+                    name: place.name,
+                    place_id: place.place_id,
+                    distance: Math.round(distance),
+                    coordinates: [place.geometry.location.lng, place.geometry.location.lat],
+                    types: place.types || []
+                  });
+                }
+              });
+            }
+          } catch (textSearchError) {
+            console.warn(`Text search for "${query}" failed:`, textSearchError.message);
           }
-        } catch (textSearchError) {
-          console.warn('Text search strategy failed:', textSearchError.message);
         }
 
         // Convert Map to Array and sort by distance
