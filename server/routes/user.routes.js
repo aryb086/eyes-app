@@ -59,4 +59,9 @@ router.get('/followers/:id', userController.getUserFollowers);
 // @access  Public
 router.get('/following/:id', userController.getUserFollowing);
 
+// @route   PUT /api/users/update-location
+// @desc    Update user location
+// @access  Private
+router.put('/update-location', userController.updateUserLocation);
+
 module.exports = router;

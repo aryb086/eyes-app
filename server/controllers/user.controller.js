@@ -377,3 +377,48 @@ exports.searchUsers = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Update user location
+// @route   PUT /api/users/update-location
+// @access  Private
+exports.updateUserLocation = async (req, res, next) => {
+  try {
+    const { city, neighborhood, coordinates, address, state, country, zipCode } = req.body;
+
+    // Validate required fields
+    if (!city || !neighborhood) {
+      return next(new ErrorResponse('City and neighborhood are required', 400));
+    }
+
+    // Update user location
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        city,
+        neighborhood,
+        stateCode: state,
+        location: {
+          type: 'Point',
+          coordinates: coordinates || [0, 0]
+        },
+        // Add additional location fields if provided
+        ...(address && { address }),
+        ...(country && { country }),
+        ...(zipCode && { zipCode })
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return next(new ErrorResponse('User not found', 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Location updated successfully',
+      user: updatedUser
+    });
+  } catch (err) {
+    next(err);
+  }
+};
