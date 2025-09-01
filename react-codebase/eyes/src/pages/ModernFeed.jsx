@@ -166,6 +166,10 @@ const ModernFeed = () => {
 
       // Always create post in backend first, then notify WebSocket
       try {
+        console.log('🔍 DEBUG: newPost.image:', newPost.image);
+        console.log('🔍 DEBUG: newPost.image type:', typeof newPost.image);
+        console.log('🔍 DEBUG: newPost.image truthy:', !!newPost.image);
+        
         if (newPost.image) {
           const formData = new FormData();
           formData.append('image', newPost.image);
@@ -181,6 +185,7 @@ const ModernFeed = () => {
           formData.append('locationType', postData.locationType);
           formData.append('coordinates', JSON.stringify(postData.coordinates));
           
+          console.log('🔍 DEBUG: Using FormData (image post)');
           const createdPost = await postService.createPost(formData);
           console.log('Post created in backend:', createdPost);
           
@@ -192,6 +197,7 @@ const ModernFeed = () => {
             toast.success("Post created successfully!");
           }
         } else {
+          console.log('🔍 DEBUG: Using JSON (text post)');
           const createdPost = await postService.createPost(postData);
           console.log('Post created in backend:', createdPost);
           
