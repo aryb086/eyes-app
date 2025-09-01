@@ -567,10 +567,10 @@ const CityFeed = () => {
                     <p className="text-muted-foreground">{post.content}</p>
                   </div>
                   
-                  {post.image && (
+                  {post.images && post.images.length > 0 && (
                     <div className="rounded-lg overflow-hidden">
                       <img 
-                        src={post.image} 
+                        src={post.images[0]} 
                         alt="Post content" 
                         className="w-full h-64 object-cover"
                       />
