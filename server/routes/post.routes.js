@@ -44,9 +44,14 @@ router.post(
   '/',
   // Conditional multer middleware - only for multipart requests
   (req, res, next) => {
+    console.log('🔍 DEBUG: Content-Type header:', req.headers['content-type']);
+    console.log('🔍 DEBUG: Is multipart:', req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data'));
+    
     if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+      console.log('🔍 DEBUG: Applying multer middleware');
       upload.single('image')(req, res, next);
     } else {
+      console.log('🔍 DEBUG: Skipping multer middleware');
       next();
     }
   },
