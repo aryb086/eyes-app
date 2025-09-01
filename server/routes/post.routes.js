@@ -42,7 +42,14 @@ router.use(auth.protect);
 // @access  Private
 router.post(
   '/',
-  upload.single('image'), // Re-enable multer for proper file handling
+  // Conditional multer middleware - only for multipart requests
+  (req, res, next) => {
+    if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+      upload.single('image')(req, res, next);
+    } else {
+      next();
+    }
+  },
   [
     check('content', 'Content is required')
       .not()
