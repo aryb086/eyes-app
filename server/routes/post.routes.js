@@ -126,15 +126,15 @@ router.put(
   postController.updatePost
 );
 
-// @route   DELETE /api/posts/:id
-// @desc    Delete a post
-// @access  Private
-router.delete('/:id', auth.protect, postController.deletePost);
-
 // @route   DELETE /api/posts/clear-all
 // @desc    Clear all posts (admin only)
 // @access  Private (Admin only)
 router.delete('/clear-all', auth.protect, postController.clearAllPosts);
+
+// @route   DELETE /api/posts/:id
+// @desc    Delete a post
+// @access  Private
+router.delete('/:id', auth.protect, postController.deletePost);
 
 // @route   PUT /api/posts/like/:id
 // @desc    Like a post
