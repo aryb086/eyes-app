@@ -120,13 +120,18 @@ const LocationSetup = () => {
         neighborhoodId: selectedNeighborhood.id.toString()
       };
 
-      // Save to backend
-      if (updateUserLocation) {
-        await updateUserLocation(locationData);
-      }
-
-      // Save to localStorage as fallback
+      // Save to localStorage first (this will work regardless of authentication)
       localStorage.setItem('userLocation', JSON.stringify(locationData));
+      
+      // Try to save to backend if user is authenticated
+      if (updateUserLocation && currentUser) {
+        try {
+          await updateUserLocation(locationData);
+        } catch (backendError) {
+          console.warn('Backend location update failed, but local storage saved:', backendError);
+          // Continue anyway since we saved to localStorage
+        }
+      }
       
       toast.success('Location set successfully!');
       navigate('/feed');
