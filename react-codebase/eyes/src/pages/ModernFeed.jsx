@@ -185,6 +185,14 @@ const ModernFeed = () => {
           formData.append('locationType', postData.locationType);
           formData.append('coordinates', JSON.stringify(postData.coordinates));
           
+          // Debug FormData contents
+          console.log('🔍 DEBUG: FormData contents:');
+          for (let [key, value] of formData.entries()) {
+            console.log(`  - ${key}:`, value);
+          }
+          console.log('🔍 DEBUG: FormData size:', formData.get('image')?.size);
+          console.log('🔍 DEBUG: FormData type:', formData.get('image')?.type);
+          
           console.log('🔍 DEBUG: Using FormData (image post)');
           const createdPost = await postService.createPost(formData);
           console.log('Post created in backend:', createdPost);
