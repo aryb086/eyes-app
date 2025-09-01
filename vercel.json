@@ -3,6 +3,11 @@
   "buildCommand": "cd react-codebase/eyes && npm install && npm run build",
   "outputDirectory": "react-codebase/eyes/build",
   "installCommand": "cd react-codebase/eyes && npm install",
+  "functions": {
+    "react-codebase/eyes/build/**": {
+      "runtime": "nodejs22.x"
+    }
+  },
   "env": {
     "REACT_APP_API_URL": "https://congressional-app-backend-ff9b28494ff1.herokuapp.com/api/v1"
   }
