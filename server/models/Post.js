@@ -7,15 +7,15 @@ const postSchema = new mongoose.Schema({
     trim: true,
     maxlength: [1000, 'Post cannot be longer than 1000 characters']
   },
-  images: [{
-    type: String,
+  images: {
+    type: [String],
     validate: {
-      validator: function(array) {
-        return array.length <= 4;
+      validator: function(images) {
+        return !images || images.length <= 4;
       },
       message: 'Cannot upload more than 4 images per post'
     }
-  }],
+  },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
