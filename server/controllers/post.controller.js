@@ -26,7 +26,12 @@ exports.getPosts = async (req, res, next) => {
     if (neighborhood) filters.neighborhood = neighborhood;
     if (category && category !== 'undefined') filters.category = category;
     
-    console.log('Query filters:', filters);
+    console.log('🔍 DEBUG: Category filtering in backend:');
+    console.log('  - Raw query params:', req.query);
+    console.log('  - Category from query:', category);
+    console.log('  - Category type:', typeof category);
+    console.log('  - Final filters:', filters);
+    console.log('  - Skip:', skip, 'Limit:', limit);
     
     const posts = await Post.find(filters)
       .populate({
@@ -57,6 +62,11 @@ exports.getPosts = async (req, res, next) => {
       .limit(parseInt(limit));
     
     const total = await Post.countDocuments(filters);
+    
+    console.log('🔍 DEBUG: Query results:');
+    console.log('  - Posts found:', posts.length);
+    console.log('  - Total count:', total);
+    console.log('  - First few post categories:', posts.slice(0, 3).map(p => p.category));
     
     res.status(200).json({
       success: true,
