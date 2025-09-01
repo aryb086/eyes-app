@@ -41,9 +41,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(data.user);
       return { success: true };
     } catch (error) {
-      console.error('Login failed:', error);
-      const errorMessage = error?.message || error?.toString() || 'Login failed. Please try again.';
-      return { success: false, message: errorMessage };
+      return { success: false, message: error };
     }
   };
 
@@ -54,9 +52,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(data.user);
       return { success: true };
     } catch (error) {
-      console.error('Registration failed:', error);
-      const errorMessage = error?.message || error?.toString() || 'Registration failed. Please try again.';
-      return { success: false, message: errorMessage };
+      return { success: false, message: error };
     }
   };
 
