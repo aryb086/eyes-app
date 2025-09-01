@@ -97,8 +97,16 @@ export const apiRequest = async (endpoint, options = {}) => {
   const isFormData = options.body instanceof FormData || 
                     options.headers?.['Content-Type']?.includes('multipart/form-data');
   
+  console.log('🔍 DEBUG: API Request Content-Type Check:');
+  console.log('  - options.body instanceof FormData:', options.body instanceof FormData);
+  console.log('  - options.headers?.[Content-Type]:', options.headers?.['Content-Type']);
+  console.log('  - isFormData:', isFormData);
+  
   if (!isFormData) {
     defaultOptions.headers['Content-Type'] = 'application/json';
+    console.log('  - Setting Content-Type to application/json');
+  } else {
+    console.log('  - Skipping Content-Type (FormData detected)');
   }
 
   // Add auth token if available
