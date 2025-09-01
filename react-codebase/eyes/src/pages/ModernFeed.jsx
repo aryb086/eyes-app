@@ -68,11 +68,6 @@ const ModernFeed = () => {
       setLoading(true);
       let response;
       
-      // Debug logging for category filtering
-      console.log('🔍 DEBUG: Category filtering on home page:');
-      console.log('  - selectedCategory:', selectedCategory);
-      console.log('  - userLocation:', userLocation);
-      
       if (userLocation) {
         // Get posts by user's location
         const locationFilters = {
@@ -81,7 +76,6 @@ const ModernFeed = () => {
           ...(selectedCategory !== 'all' && { category: selectedCategory }),
           limit: 20
         };
-        console.log('  - Using location filters:', locationFilters);
         response = await postService.getPostsByLocation(locationFilters);
       } else {
         // Get all posts if no location set
@@ -89,7 +83,6 @@ const ModernFeed = () => {
           limit: 20,
           ...(selectedCategory !== 'all' && { category: selectedCategory })
         };
-        console.log('  - Using all posts filters:', allFilters);
         response = await postService.getAllPosts(allFilters);
       }
       
@@ -97,7 +90,6 @@ const ModernFeed = () => {
       const postsData = response.posts || response.data || [];
       setPosts(postsData);
       console.log('Posts fetched:', postsData);
-      console.log('  - Number of posts returned:', postsData.length);
     } catch (error) {
       console.error("Failed to fetch posts:", error);
       toast.error("Failed to load posts");
@@ -559,10 +551,7 @@ const ModernFeed = () => {
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => {
-                console.log('🔍 DEBUG: Category "All" selected');
-                setSelectedCategory('all');
-              }}
+              onClick={() => setSelectedCategory('all')}
             >
               All
             </Button>
@@ -571,10 +560,7 @@ const ModernFeed = () => {
                 key={category.id}
                 variant={selectedCategory === category.id ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  console.log('🔍 DEBUG: Category selected:', category.id, category.label);
-                  setSelectedCategory(category.id);
-                }}
+                onClick={() => setSelectedCategory(category.id)}
                 className={selectedCategory === category.id ? category.color : ''}
               >
                 {category.label}
