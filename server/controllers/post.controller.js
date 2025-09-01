@@ -669,12 +669,18 @@ exports.getFeedPosts = async (req, res, next) => {
 // @access  Public
 exports.getPostsByLocation = async (req, res, next) => {
   try {
-    const { city, neighborhood, limit = 20, page = 1 } = req.query;
+    const { city, neighborhood, category, limit = 20, page = 1 } = req.query;
     
     // Build query based on location parameters
     const query = {};
     if (city) query.city = city;
     if (neighborhood) query.neighborhood = neighborhood;
+    if (category && category !== 'undefined') query.category = category;
+    
+    console.log('🔍 DEBUG: getPostsByLocation category filtering:');
+    console.log('  - Raw query params:', req.query);
+    console.log('  - Category from query:', category);
+    console.log('  - Final query:', query);
     
     // Pagination
     const skip = (page - 1) * limit;
