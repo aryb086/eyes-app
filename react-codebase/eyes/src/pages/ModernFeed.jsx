@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../components/ui/Card";
+import PostCard from "../components/PostCard";
 
 import { Eye, MapPin, User, Menu, Plus, Heart, MessageCircle, Share2, MoreVertical, Image as ImageIcon, Home, Settings } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -592,130 +593,14 @@ const ModernFeed = () => {
         ) : (
           <div className="grid gap-6">
             {filteredPosts.map((post) => (
-              <Card key={post._id} className="overflow-hidden">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={post.author?.avatar || post.author?.profilePicture || 'https://randomuser.me/api/portraits/lego/1.jpg'}
-                        alt={post.author?.fullName || post.author?.username}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div>
-                        <p className="font-medium">{post.author?.fullName || post.author?.username}</p>
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{post.neighborhood}, {post.city}</span>
-                          <span>•</span>
-                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        POST_CATEGORIES.find(c => c.id === post.category)?.color || 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {POST_CATEGORIES.find(c => c.id === post.category)?.label || 'General'}
-                      </span>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-muted-foreground">{post.content}</p>
-                  </div>
-                  
-                  {post.images && post.images.length > 0 && (
-                    <div className="rounded-lg overflow-hidden">
-                      <img 
-                        src={post.images[0]} 
-                        alt="Post content" 
-                        className="w-full h-64 object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <div className="flex items-center space-x-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleLike(post._id)}
-                        className="flex items-center space-x-2"
-                      >
-                        <Heart className={`h-4 w-4 ${post.isLiked ? 'text-red-500 fill-current' : ''}`} />
-                        <span>{post.likes || 0}</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="flex items-center space-x-2"
-                        onClick={() => handleComment(post._id)}
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        <span>{post.comments?.length || 0}</span>
-                      </Button>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleShare(post._id)}
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  {/* Comments Section */}
-                  {commentingPost === post._id && (
-                    <div className="pt-3 border-t border-border space-y-3">
-                      {/* Existing Comments */}
-                      {post.comments && post.comments.length > 0 && (
-                        <div className="space-y-2">
-                          {post.comments.map((comment) => (
-                            <div key={comment._id} className="flex items-start space-x-2">
-                              <img
-                                src={comment.author?.avatar || comment.author?.profilePicture || 'https://randomuser.me/api/portraits/lego/1.jpg'}
-                                alt={comment.author?.fullName || comment.author?.username}
-                                className="w-6 h-6 rounded-full object-cover"
-                              />
-                              <div className="flex-1 bg-gray-50 rounded-lg p-2">
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-medium text-sm">{comment.author?.fullName || comment.author?.username}</span>
-                                  <span className="text-xs text-gray-500">{new Date(comment.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <p className="text-sm text-gray-700">{comment.content}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {/* Comment Input */}
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Add a comment..."
-                          className="flex-1 px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                          onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment(post._id)}
-                        />
-                        <Button 
-                          size="sm"
-                          onClick={() => handleSubmitComment(post._id)}
-                          disabled={!commentText.trim()}
-                        >
-                          Post
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <PostCard
+                key={post._id}
+                post={post}
+                onLike={handleLike}
+                onComment={handleComment}
+                onShare={handleShare}
+                POST_CATEGORIES={POST_CATEGORIES}
+              />
             ))}
           </div>
         )}
