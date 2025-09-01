@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { ErrorResponse } = require('../middleware/error');
+const ErrorResponse = require('../utils/errorResponse');
 
 // Google Maps API configuration
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
