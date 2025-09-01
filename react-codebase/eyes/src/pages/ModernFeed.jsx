@@ -610,6 +610,10 @@ const ModernFeed = () => {
                 onComment={handleComment}
                 onShare={handleShare}
                 POST_CATEGORIES={POST_CATEGORIES}
+                isCommenting={commentingPost === post._id}
+                commentText={commentText}
+                onCommentTextChange={setCommentText}
+                onSubmitComment={handleSubmitComment}
               />
             ))}
           </div>
