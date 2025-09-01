@@ -361,8 +361,9 @@ exports.createPost = async (req, res, next) => {
     console.log('=== 📊 RESPONSE POPULATION ANALYSIS ===');
     console.log('Populating post with author details');
     
+    let populatedPost;
     try {
-      const populatedPost = await Post.findById(post._id).populate({
+      populatedPost = await Post.findById(post._id).populate({
         path: 'author',
         select: 'username fullName profilePicture avatar'
       });
@@ -373,7 +374,7 @@ exports.createPost = async (req, res, next) => {
     } catch (populateError) {
       console.error('❌ Post population failed:', populateError.message);
       // Use unpopulated post if population fails
-      const populatedPost = post;
+      populatedPost = post;
     }
     
     // === SUCCESS RESPONSE ===
