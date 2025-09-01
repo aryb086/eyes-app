@@ -345,7 +345,12 @@ const UserSettings = () => {
                                   <Building2 className="h-4 w-4 text-gray-400" />
                                   <div>
                                     <p className="font-medium text-gray-900">{neighborhood.name}</p>
-                                    <p className="text-sm text-gray-500">{neighborhood.distance}m away</p>
+                                    <p className="text-sm text-gray-500">
+                                      {neighborhood.distance >= 1000 
+                                        ? `${(neighborhood.distance / 1000).toFixed(1)}km away`
+                                        : `${neighborhood.distance}m away`
+                                      }
+                                    </p>
                                   </div>
                                 </div>
                                 {selectedNeighborhood?.name === neighborhood.name && (
