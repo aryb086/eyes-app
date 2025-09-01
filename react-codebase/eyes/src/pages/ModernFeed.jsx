@@ -11,6 +11,7 @@ import { useRealtime } from "../contexts/RealtimeContext";
 import postService from "../services/postService";
 import RealtimeIndicator from "../components/RealtimeIndicator";
 import { toast } from "react-hot-toast";
+import { API_URL } from "../services/api";
 
 // Post categories - aligned with backend Post model
 const POST_CATEGORIES = [

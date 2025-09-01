@@ -9,6 +9,7 @@ import { useLocation } from '../contexts/LocationContext';
 import { useRealtime } from '../contexts/RealtimeContext';
 import postService from '../services/postService';
 import { toast } from 'react-hot-toast';
+import { API_URL } from '../services/api';
 
 const POST_CATEGORIES = [
   { id: 'all', label: 'All', color: 'bg-muted text-muted-foreground' },
