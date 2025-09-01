@@ -66,8 +66,8 @@ export const LocationProvider = ({ children }) => {
   const loadCities = async () => {
     try {
       const response = await locationService.getCities();
-      if (response.cities) {
-        setCities(response.cities.map(city => city.name));
+      if (response.data) {
+        setCities(response.data.map(city => city.name));
       } else {
         setCities([]);
       }
@@ -81,9 +81,14 @@ export const LocationProvider = ({ children }) => {
   // Load neighborhoods from backend
   const loadNeighborhoods = async (cityName = null) => {
     try {
-      const response = await locationService.getNeighborhoods({ city: cityName });
-      if (response.neighborhoods) {
-        setNeighborhoods(response.neighborhoods.map(neighborhood => neighborhood.name));
+      if (!cityName) {
+        setNeighborhoods([]);
+        return;
+      }
+      
+      const response = await locationService.getNeighborhoods(cityName);
+      if (response.data) {
+        setNeighborhoods(response.data.map(neighborhood => neighborhood.name));
       } else {
         setNeighborhoods([]);
       }
