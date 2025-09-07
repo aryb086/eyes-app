@@ -2,6 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-specific fixes */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve touch targets for mobile */
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Better touch feedback */
+button:active, a:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+input, textarea {
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+#root {
+  height: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Prevent zoom on input focus on iOS */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
+    font-size: 16px !important;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -101,4 +155,65 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Mobile performance optimizations */
+* {
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-transform-style: preserve-3d;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Better touch targets for mobile */
+  button, a, input, select, textarea {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Improve text readability on mobile */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Better spacing for mobile cards */
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Optimize modal for mobile */
+  .modal {
+    padding: 1rem;
+    margin: 1rem;
+  }
+}
+
+/* Reduce motion for better performance */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Optimize scrolling on mobile */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }

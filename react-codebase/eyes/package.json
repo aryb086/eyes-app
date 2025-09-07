@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.14",
@@ -33,7 +37,12 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "dev": "react-app-rewired start"
+    "dev": "react-app-rewired start",
+    "mobile:ios": "npx cap run ios",
+    "mobile:android": "npx cap run android",
+    "mobile:web": "npx cap run web",
+    "mobile:sync": "npx cap sync",
+    "mobile:build": "npm run build && npx cap sync"
   },
   "eslintConfig": {
     "extends": [

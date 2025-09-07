@@ -50,7 +50,8 @@ export const RealtimeProvider = ({ children }) => {
       console.log('🔄 RealtimeContext: Attempting to connect WebSocket...');
       console.log('🔄 RealtimeContext: isAuthenticated:', isAuthenticated);
       
-      websocketService.connect();
+      // Force connection to Heroku WebSocket server
+      websocketService.connectToHeroku();
       
       // Set up event listeners
       websocketService.addEventListener('connected', handleConnected);
@@ -66,7 +67,7 @@ export const RealtimeProvider = ({ children }) => {
       websocketService.on('comment_added', handleCommentAdded);
       websocketService.on('notification', handleNotification);
       
-      console.log('🔄 RealtimeContext: WebSocket connection initiated');
+      console.log('🔄 RealtimeContext: WebSocket connection initiated to Heroku server');
       
     } catch (error) {
       console.error('❌ RealtimeContext: Failed to connect WebSocket:', error);

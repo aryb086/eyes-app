@@ -328,7 +328,7 @@ const UserSettings = () => {
                       </div>
 
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Select Your Neighborhood</h4>
+                        <h4 className="font-medium text-foreground mb-3">Select Your Neighborhood</h4>
                         <div className="space-y-2">
                           {nearbyNeighborhoods.map((neighborhood, index) => (
                             <div

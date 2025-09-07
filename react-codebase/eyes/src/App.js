@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { LocationProvider } from "./contexts/LocationContext";
 import { RealtimeProvider } from "./contexts/RealtimeContext";
 
@@ -21,16 +21,54 @@ import UserSettings from "./pages/UserSettings";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
-const App = () => {
+// Loading component
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
+
+// Main app content component
+const AppContent = () => {
+  const { isLoading, currentUser, isAuthenticated } = useAuth();
+  const [forceRender, setForceRender] = React.useState(false);
+
+  // Force render after 3 seconds to prevent infinite loading
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('AppContent: Force rendering after timeout');
+      }
+      setForceRender(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('AppContent: isLoading:', isLoading);
+    console.log('AppContent: currentUser:', currentUser);
+    console.log('AppContent: isAuthenticated:', isAuthenticated);
+    console.log('AppContent: forceRender:', forceRender);
+  }
+
+  if (isLoading && !forceRender) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AppContent: Showing loading screen');
+    }
+    return <LoadingScreen />;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('AppContent: Rendering main app content');
+  }
   return (
-    <ThemeProvider defaultTheme="system" storageKey="eyes-ui-theme">
-      <TooltipProvider>
-        <AuthProvider>
-          <LocationProvider>
-            <RealtimeProvider>
-              <div className="min-h-screen bg-background">
-                <Toaster />
-                <Routes>
+    <div className="min-h-screen bg-background">
+      <Toaster />
+      <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<ModernSplash />} />
                   <Route path="/login" element={<ModernLogin />} />
@@ -49,7 +87,18 @@ const App = () => {
                   {/* Catch-all route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </div>
+    </div>
+  );
+};
+
+const App = () => {
+  return (
+    <ThemeProvider defaultTheme="system" storageKey="eyes-ui-theme">
+      <TooltipProvider>
+        <AuthProvider>
+          <LocationProvider>
+            <RealtimeProvider>
+              <AppContent />
             </RealtimeProvider>
           </LocationProvider>
         </AuthProvider>
@@ -59,13 +108,3 @@ const App = () => {
 };
 
 export default App;
-// Trigger deployment
-// Trigger deployment
-// Trigger deployment
-// Trigger deployment
-// Trigger deployment
-// Trigger deployment
-// Trigger deployment
-// Trigger Vercel deployment
-// Trigger deployment
-// Trigger frontend redeployment

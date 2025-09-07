@@ -15,6 +15,7 @@ import { API_URL } from "../services/api";
 
 // Post categories - aligned with backend Post model
 const POST_CATEGORIES = [
+  { id: 'all', label: 'All', color: 'bg-muted text-muted-foreground' },
   { id: 'general', label: 'General', color: 'bg-muted text-muted-foreground' },
   { id: 'news', label: 'News', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
   { id: 'events', label: 'Events', color: 'bg-green-500/10 text-green-600 dark:text-green-400' },
@@ -425,24 +426,25 @@ const ModernFeed = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Mobile-Optimized Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="container mx-auto px-3 sm:px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2"
             >
               <Menu className="h-5 w-5" />
             </Button>
             <div className="flex items-center space-x-2">
-              <Eye className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">EYES</h1>
+              <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <h1 className="text-lg sm:text-xl font-bold">EYES</h1>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <RealtimeIndicator />
             <Button
               onClick={() => setShowCreateModal(true)}
@@ -531,25 +533,33 @@ const ModernFeed = () => {
         </div>
       </aside>
 
-      {/* Category Filter */}
+      {/* Feed Header with Category Filters */}
       <div className="bg-card border-b border-border">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center space-x-2 overflow-x-auto">
-            <span className="text-sm font-medium text-muted-foreground">Filter:</span>
-            <Button
-              variant={selectedCategory === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory('all')}
-            >
-              All
-            </Button>
+        <div className="container mx-auto px-3 sm:px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">Home Feed</h2>
+              {userLocation?.city && (
+                <p className="text-sm sm:text-lg text-muted-foreground mt-1">
+                  📍 {userLocation.city}
+                  {userLocation.neighborhood && `, ${userLocation.neighborhood}`}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs sm:text-sm text-muted-foreground">Filter by:</span>
+            </div>
+          </div>
+          
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2">
             {POST_CATEGORIES.map(category => (
               <Button
                 key={category.id}
-                variant={selectedCategory === category.id ? 'default' : 'outline'}
+                variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category.id)}
-                className={selectedCategory === category.id ? category.color : ''}
+                className={`${selectedCategory === category.id ? category.color : ''} text-xs sm:text-sm`}
               >
                 {category.label}
               </Button>
@@ -558,27 +568,27 @@ const ModernFeed = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      {/* Mobile-Optimized Main Content */}
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading posts...</p>
+          <div className="text-center py-8 sm:py-12">
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground text-sm sm:text-base">Loading posts...</p>
           </div>
         ) : filteredPosts.length === 0 ? (
-          <div className="text-center py-12">
-            <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
-            <p className="text-muted-foreground mb-6">
+          <div className="text-center py-8 sm:py-12 px-4">
+            <MapPin className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2">No posts yet</h3>
+            <p className="text-muted-foreground mb-6 text-sm sm:text-base">
               Be the first to share something in your area!
             </p>
-            <Button onClick={() => setShowCreateModal(true)}>
+            <Button onClick={() => setShowCreateModal(true)} className="text-sm">
               <Plus className="h-4 w-4 mr-2" />
               Create First Post
             </Button>
           </div>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-4 sm:gap-6">
             {filteredPosts.map((post) => (
               <PostCard
                 key={post._id}

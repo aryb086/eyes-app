@@ -93,10 +93,10 @@ const PostCard = ({
               }}
             />
             <div className="flex-1">
-              <p className="font-semibold text-gray-900">
+              <p className="font-semibold text-foreground">
                 {post.author?.fullName || post.author?.username}
               </p>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 <span>{post.neighborhood}, {post.city}</span>
                 <span>•</span>

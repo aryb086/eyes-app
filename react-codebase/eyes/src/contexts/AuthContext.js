@@ -9,10 +9,17 @@ export const AuthProvider = ({ children }) => {
 
   const getCurrentUser = async () => {
     try {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('AuthContext: Getting current user...');
+      }
       const token = localStorage.getItem('authToken');
+      
       if (token) {
         // You might want to validate the token with the server here
         const user = authService.getCurrentUser();
+        if (process.env.NODE_ENV === 'development') {
+          console.log('AuthContext: User from service:', user);
+        }
         if (user) {
           setCurrentUser(user);
         }
@@ -30,6 +37,9 @@ export const AuthProvider = ({ children }) => {
   // Only run once on component mount
   useEffect(() => {
     const checkAuth = async () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('AuthContext: useEffect - checking auth');
+      }
       await getCurrentUser();
     };
     checkAuth();
@@ -91,7 +101,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

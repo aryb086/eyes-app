@@ -62,8 +62,8 @@ function MobileSidebar({ isOpen, onClose, onToggle }) {
               className="w-12 h-12 rounded-full object-cover"
             />
             <div>
-              <h3 className="font-semibold text-gray-900">{user?.fullName || user?.username}</h3>
-              <p className="text-sm text-gray-500">@{user?.username}</p>
+              <h3 className="font-semibold text-foreground">{user?.fullName || user?.username}</h3>
+              <p className="text-sm text-muted-foreground">@{user?.username}</p>
             </div>
           </div>
         </div>

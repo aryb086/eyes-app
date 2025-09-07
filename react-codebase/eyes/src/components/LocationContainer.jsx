@@ -203,7 +203,7 @@ const LocationContainer = ({
         ) : posts.length > 0 ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-gray-900">Recent Posts</h4>
+              <h4 className="font-medium text-foreground">Recent Posts</h4>
               {posts.length > maxPosts && (
                 <Button
                   variant="ghost"

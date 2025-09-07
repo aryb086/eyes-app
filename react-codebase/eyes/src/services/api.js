@@ -5,6 +5,10 @@
 const getApiUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
+    // For Capacitor mobile apps, always use production URL
+    if (window.Capacitor) {
+      return 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
+    }
     // For production builds, use the production URL directly
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       return 'https://eyes-app-backend-9f922055ebf7.herokuapp.com/api/v1';
@@ -19,8 +23,8 @@ const getApiUrl = () => {
 
 export const API_URL = getApiUrl();
 
-// Debug logging for API URL
-if (typeof window !== 'undefined') {
+// Debug logging for API URL (only in development)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   console.log('🔧 API Configuration Debug:');
   console.log('  - process.env.REACT_APP_API_BASE_URL:', process.env.REACT_APP_API_BASE_URL);
   console.log('  - window.location.hostname:', window.location.hostname);
@@ -89,17 +93,21 @@ export const ENDPOINTS = {
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_URL}${endpoint}`;
   
-  // Debug logging for API requests
-  console.log('🌐 API Request Debug:');
-  console.log('  - API_URL:', API_URL);
-  console.log('  - endpoint:', endpoint);
-  console.log('  - Full URL:', url);
+  // Debug logging for API requests (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🌐 API Request Debug:');
+    console.log('  - API_URL:', API_URL);
+    console.log('  - endpoint:', endpoint);
+    console.log('  - Full URL:', url);
+  }
   
   const defaultOptions = {
     headers: {
       ...options.headers,
     },
     credentials: 'include', // Include cookies for authentication
+    mode: 'cors', // Enable CORS for mobile app
+    cache: 'no-cache', // Disable caching for mobile app
   };
 
   // Only set Content-Type for non-FormData requests
@@ -107,16 +115,22 @@ export const apiRequest = async (endpoint, options = {}) => {
   const isFormData = options.body instanceof FormData || 
                     options.headers?.['Content-Type']?.includes('multipart/form-data');
   
-  console.log('🔍 DEBUG: API Request Content-Type Check:');
-  console.log('  - options.body instanceof FormData:', options.body instanceof FormData);
-  console.log('  - options.headers?.[Content-Type]:', options.headers?.['Content-Type']);
-  console.log('  - isFormData:', isFormData);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 DEBUG: API Request Content-Type Check:');
+    console.log('  - options.body instanceof FormData:', options.body instanceof FormData);
+    console.log('  - options.headers?.[Content-Type]:', options.headers?.['Content-Type']);
+    console.log('  - isFormData:', isFormData);
+  }
   
   if (!isFormData) {
     defaultOptions.headers['Content-Type'] = 'application/json';
-    console.log('  - Setting Content-Type to application/json');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('  - Setting Content-Type to application/json');
+    }
   } else {
-    console.log('  - Skipping Content-Type (FormData detected)');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('  - Skipping Content-Type (FormData detected)');
+    }
   }
 
   // Add auth token if available

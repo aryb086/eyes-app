@@ -25,11 +25,19 @@ class WebSocketService {
       return;
     }
 
+    // Reset connection state
+    this.manuallyDisconnected = false;
+    this.fallbackMode = false;
+
     // Determine WebSocket URL based on environment
     let wsUrl;
     if (typeof window !== 'undefined') {
+      // For Capacitor mobile apps, always use production WebSocket URL
+      if (window.Capacitor) {
+        wsUrl = 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
+      }
       // For production builds, use the production WebSocket URL directly
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      else if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         wsUrl = 'wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com';
       } else {
         // For local development, use localhost
@@ -43,6 +51,7 @@ class WebSocketService {
     console.log('WebSocket URL determined:', {
       hostname: window.location.hostname,
       isLocalhost: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+      isCapacitor: !!window.Capacitor,
       wsUrl: wsUrl
     });
 
@@ -71,11 +80,15 @@ class WebSocketService {
         this.connectionStatus = 'connected';
         this.reconnectAttempts = 0;
         this.fallbackMode = false;
+        this.manuallyDisconnected = false;
         this.emit('connected');
         this.emit('statusChanged', this.connectionStatus);
 
         // Process queued messages
         this.processMessageQueue();
+        
+        // Send initial ping to verify connection
+        this.send('ping', { timestamp: Date.now() });
       };
 
       this.ws.onmessage = (event) => {
@@ -98,10 +111,13 @@ class WebSocketService {
 
         // Only attempt to reconnect if not a clean close and not manually disconnected
         if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts && !this.manuallyDisconnected) {
+          console.log(`WebSocket closed with code ${event.code}, attempting reconnection...`);
           this.scheduleReconnect();
         } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
           console.log('Max reconnection attempts reached, switching to fallback mode');
           this.enableFallbackMode();
+        } else if (this.manuallyDisconnected) {
+          console.log('WebSocket manually disconnected, not attempting reconnection');
         }
       };
 
@@ -334,6 +350,19 @@ class WebSocketService {
   // Get queued message count
   getQueuedMessageCount() {
     return this.messageQueue.length;
+  }
+
+  // Force connection to Heroku WebSocket server
+  async connectToHeroku() {
+    console.log('🔄 Forcing connection to Heroku WebSocket server...');
+    this.disconnect();
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+    this.connect('wss://eyes-websocket-server-5e12aa3ae96e.herokuapp.com');
+  }
+
+  // Check if connected to Heroku server
+  isConnectedToHeroku() {
+    return this.isConnected && this.ws && this.ws.url.includes('herokuapp.com');
   }
 }
 
